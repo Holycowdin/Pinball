@@ -10,6 +10,22 @@ BLACK = (0,0,0)
 WHITE = (255,255,255)
 
 
+
+class PinballComponent():
+    def __init__(self):
+        pass
+
+
+class Bumper(PinballComponent):
+    def __init__(self):
+        super().__init__()
+ 
+
+class Ball():
+    def __init__(self):
+        pass
+
+
 class Main():
     def __init__(self):
         pygame.init()
@@ -19,6 +35,8 @@ class Main():
 
     def render(self):
         self.window.fill(BLACK)
+
+        pygame.display.update()
     
     def userInput(self):
         for event in pygame.event.get():
