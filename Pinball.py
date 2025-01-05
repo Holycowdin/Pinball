@@ -73,7 +73,7 @@ class Slope(PinballComponent):
         super().__init__(sprite, pos)
         if self.mask.get_at(self.sprite.get_rect().topleft):    #Schräge geht von oben links nach unten rechts
             self.slopeVector = Vector2(self.rect.bottomright) - Vector2(self.rect.topleft)
-        else:   ##Schräge geht von oben rechts nach unten links
+        else:   #Schräge geht von oben rechts nach unten links
             self.slopeVector = Vector2(self.rect.bottomleft) - Vector2(self.rect.topright)
 
     def collide(self, ball:Ball):
@@ -81,6 +81,22 @@ class Slope(PinballComponent):
         vectorLength = ball.movementVector.length()
         self.slopeVector.scale_to_length(vectorLength)
         ball.movementVector = self.slopeVector.copy()
+
+
+class Slingshot(PinballComponent):
+    def __init__(self, sprite, pos):
+        super().__init__(sprite, pos)
+        if self.mask.get_at(self.sprite.get_rect().topleft + Vector2(1,0)): #Schräge geht von oben links nach unten rechts
+            self.slingVector = Vector2(self.rect.bottomright) - Vector2(self.rect.topleft)
+        else:   #Schräge geht von oben rechts nach unten links
+            self.slingVector = Vector2(self.rect.bottomleft) - Vector2(self.rect.topright)
+        self.slingVector.y *= -1
+
+    def collide(self, ball):
+        """Handling der Kollision von Slingshot und Ball"""
+        movementVector = self.slingVector
+        movementVector.scale_to_length(14)
+        ball.movementVector = movementVector
 
 
 class Main():
@@ -94,18 +110,27 @@ class Main():
         bumperSprite = pygame.image.load("Assets/Sprites/Bumper.png").convert_alpha()
         slopeSprite = pygame.image.load("Assets/Sprites/Line.png").convert_alpha()
         slopeSprite = pygame.transform.flip(slopeSprite, True, False)
-        #Ball und Komponenten erstellen
+        slingshotSprite = pygame.image.load("Assets/Sprites/Slingshot.png").convert_alpha()
+        #slingshotSprite = pygame.transform.flip(slingshotSprite, True, False)
+        #Ball erstellen
         self.ball = Ball(ballSprite, Vector2(700, 800))
+        #Bumper erstellen
         self.bumpers:list[Bumper] = []
         self.bumpers.append(
             Bumper(bumperSprite, Vector2(50, 600))
         )
+        #Slopes erstellen
         self.slopes:list[Slope] = []
         self.slopes.append(
             Slope(slopeSprite, Vector2(900, 0))
         )
+        #Slingshots erstellen
+        self.slingshots:list[Slingshot] = []
+        self.slingshots.append(
+            Slingshot(slingshotSprite, Vector2(600, 750))
+        )
 
-        self.components:tuple[PinballComponent] = tuple(self.bumpers + self.slopes)
+        self.components:tuple[PinballComponent] = tuple(self.bumpers + self.slopes + self.slingshots)
 
 
     def render(self):
@@ -113,12 +138,9 @@ class Main():
         self.window.fill(LIGHT_GREY)
         #Ball rendern
         self.window.blit(self.ball.sprite, self.ball.rect)
-        #Bumper rendern
-        for bumper in self.bumpers:
-            self.window.blit(bumper.sprite, bumper.rect)
-        #Slopes rendern
-        for slope in self.slopes:
-            self.window.blit(slope.sprite, slope.rect)
+        #Komponenten rendern
+        for component in self.components:
+            self.window.blit(component.sprite, component.rect)
 
         pygame.display.update()
 
@@ -159,3 +181,8 @@ class Main():
 
 main = Main()
 main.run()
+
+
+
+
+#Slingshot funktioniert von allen Seiten, später eigene Maske für Schräge und andere zwei Seiten
