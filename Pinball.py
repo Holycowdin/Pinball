@@ -66,31 +66,42 @@ class Flipper(PinballComponent):
         else:   #Schräge geht von oben rechts nach unten links
             self.slopeVector = Vector2(self.rect.bottomleft) - Vector2(self.rect.topright)
             self.pivotPoint = self.pos + Vector2(177, 20)
+        self.slingVector = self.slopeVector.elementwise() * Vector2(1,-2.5)
 
         self.originalSprite = self.sprite
         self.originalRect = self.rect
         self.isMoving = False
-        self.back = False
+        self.movingBack = False
         self.rotationAngle = 0
         self.direction = direction
 
-    def collide(self, ball):
+    def collide(self, ball:Ball):
         """Handling der Kollision von Flipper und Ball"""
+        if self.isMoving == True:
+            self.throwBall(ball)
+            return
         vectorLength = ball.movementVector.length()
         self.slopeVector.scale_to_length(vectorLength)
         ball.movementVector = self.slopeVector.copy()
-    
+
+    def throwBall(self, ball:Ball):
+        """Wirft den Ball"""
+        movementVector = self.slingVector
+        movementVector.scale_to_length(28)
+        ball.movementVector = movementVector
+
     def move(self):
-        if self.back == False:
+        """Rotiert den Ball; wenn self.direction = 1: linker Flipper, wenn self.direction = -1: rechter Flipper"""
+        if self.movingBack == False:
             self.rotationAngle += 8 * self.direction
         else:
             self.rotationAngle -= 5 * self.direction
         if self.rotationAngle * self.direction >= 70:
             self.rotationAngle = 70 * self.direction
-            self.back = True
+            self.movingBack = True
         elif self.rotationAngle * self.direction <= 0:
             self.rotationAngle = 0
-            self.back = False
+            self.movingBack = False
             self.isMoving = False
 
         offset = self.originalRect.center - self.pivotPoint
@@ -100,7 +111,7 @@ class Flipper(PinballComponent):
         rotated_rect.centerx = self.pivotPoint.x + offset.x
         rotated_rect.centery = self.pivotPoint.y + offset.y
         self.rect = rotated_rect
-        
+        self.mask = pygame.mask.from_surface(self.sprite)
 
 
 class Bumper(PinballComponent):
@@ -170,12 +181,12 @@ class Main():
         )
         flipperSprite = pygame.transform.flip(flipperSprite, True, False)
         self.flippers.append(
-            Flipper(flipperSprite, Vector2(300, 800), -1)
+            Flipper(flipperSprite, Vector2(800, 800), -1)   #300, 800
         )
         #Bumper erstellen
         self.bumpers:list[Bumper] = []
         self.bumpers.append(
-            Bumper(bumperSprite, Vector2(50, 600))
+            Bumper(bumperSprite, Vector2(650, 50))  #50, 600
         )
         #Slopes erstellen
         self.slopes:list[Slope] = []
@@ -199,6 +210,7 @@ class Main():
         #Komponenten rendern
         for component in self.components:
             self.window.blit(component.sprite, component.rect)
+        
         pygame.display.update()
 
     def userInput(self):
@@ -248,6 +260,6 @@ main.run()
 
 
 
-
+#Ball sollte man trappen können -> wenn Flippertaste gedrückt, soll Flipper oben bleiben
+#Ball sollte stärker weggeworfen werden, wenn Ball weiter vorne
 #Slingshot funktioniert von allen Seiten, später eigene Maske für Schräge und andere zwei Seiten
-#Wenn mehrere Kugeln -> Maske für flipper soll bei Rotieren von Sprite auch angepasst werden
