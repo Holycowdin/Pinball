@@ -71,7 +71,7 @@ class Flipper(PinballComponent):
         self.originalSprite = self.sprite
         self.originalRect = self.rect
         self.isMoving = False
-        self.movingBack = False
+        self.movingForward = False
         self.rotationAngle = 0
         self.direction = direction
 
@@ -90,26 +90,28 @@ class Flipper(PinballComponent):
         movementVector.scale_to_length(28)
         ball.movementVector = movementVector
 
+    def startMoving(self):
+        self.isMoving = True
+        self.movingForward = True
+
     def move(self):
         """Rotiert den Ball; wenn self.direction = 1: linker Flipper, wenn self.direction = -1: rechter Flipper"""
-        if self.movingBack == False:
+        if self.movingForward:
             self.rotationAngle += 8 * self.direction
         else:
             self.rotationAngle -= 5 * self.direction
         if self.rotationAngle * self.direction >= 70:
             self.rotationAngle = 70 * self.direction
-            self.movingBack = True
+            self.movingForward = False
         elif self.rotationAngle * self.direction <= 0:
             self.rotationAngle = 0
-            self.movingBack = False
             self.isMoving = False
 
         offset = self.originalRect.center - self.pivotPoint
         offset.rotate_ip(-self.rotationAngle)
         self.sprite = pygame.transform.rotate(self.originalSprite, self.rotationAngle)
         rotated_rect = self.sprite.get_rect()
-        rotated_rect.centerx = self.pivotPoint.x + offset.x
-        rotated_rect.centery = self.pivotPoint.y + offset.y
+        rotated_rect.center = self.pivotPoint + offset
         self.rect = rotated_rect
         self.mask = pygame.mask.from_surface(self.sprite)
 
@@ -223,10 +225,13 @@ class Main():
                 if event.key == pygame.K_ESCAPE:
                     self.isRunning = False
                     return
-                elif event.key == pygame.K_a:
-                    self.flippers[0].isMoving = True
-                elif event.key == pygame.K_d:
-                    self.flippers[1].isMoving = True
+
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_a]:
+            self.flippers[0].startMoving()
+        if keys[pygame.K_d]:
+            self.flippers[1].startMoving()
+        
 
     def moveObjects(self):
         """Callt Methode für Bewegung von Ball und Flipper"""
@@ -260,6 +265,6 @@ main.run()
 
 
 
-#Ball sollte man trappen können -> wenn Flippertaste gedrückt, soll Flipper oben bleiben
+#Ball sollte man trappen können
 #Ball sollte stärker weggeworfen werden, wenn Ball weiter vorne
 #Slingshot funktioniert von allen Seiten, später eigene Maske für Schräge und andere zwei Seiten
