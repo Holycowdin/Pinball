@@ -2,7 +2,6 @@ import pygame
 from pygame import Rect
 from pygame.math import Vector2
 
-
 WINDOW_WIDTH = 64*20
 WINDOW_HEIGHT = 64*15
 
@@ -55,6 +54,53 @@ class PinballComponent():
 
     def collide(self, ball:Ball):
         raise NotImplementedError
+    
+
+class Flipper(PinballComponent):
+    def __init__(self, sprite:pygame.Surface, pos:Vector2, direction:int):
+        super().__init__(sprite, pos)
+        # self.mask = pygame.mask.from_threshold(self.sprite, (255,255,255), (0,0,0,255))
+        if self.mask.get_at(self.sprite.get_rect().topleft + Vector2(14,21)):    #Schräge geht von oben links nach unten rechts
+            self.slopeVector = Vector2(self.rect.bottomright) - Vector2(self.rect.topleft)
+            self.pivotPoint = self.pos + Vector2(14, 21)
+        else:   #Schräge geht von oben rechts nach unten links
+            self.slopeVector = Vector2(self.rect.bottomleft) - Vector2(self.rect.topright)
+            self.pivotPoint = self.pos + Vector2(177, 20)
+
+        self.originalSprite = self.sprite
+        self.originalRect = self.rect
+        self.isMoving = False
+        self.back = False
+        self.rotationAngle = 0
+        self.direction = direction
+
+    def collide(self, ball):
+        """Handling der Kollision von Flipper und Ball"""
+        vectorLength = ball.movementVector.length()
+        self.slopeVector.scale_to_length(vectorLength)
+        ball.movementVector = self.slopeVector.copy()
+    
+    def move(self):
+        if self.back == False:
+            self.rotationAngle += 8 * self.direction
+        else:
+            self.rotationAngle -= 5 * self.direction
+        if self.rotationAngle * self.direction >= 70:
+            self.rotationAngle = 70 * self.direction
+            self.back = True
+        elif self.rotationAngle * self.direction <= 0:
+            self.rotationAngle = 0
+            self.back = False
+            self.isMoving = False
+
+        offset = self.originalRect.center - self.pivotPoint
+        offset.rotate_ip(-self.rotationAngle)
+        self.sprite = pygame.transform.rotate(self.originalSprite, self.rotationAngle)
+        rotated_rect = self.sprite.get_rect()
+        rotated_rect.centerx = self.pivotPoint.x + offset.x
+        rotated_rect.centery = self.pivotPoint.y + offset.y
+        self.rect = rotated_rect
+        
 
 
 class Bumper(PinballComponent):
@@ -69,7 +115,7 @@ class Bumper(PinballComponent):
 
 
 class Slope(PinballComponent):
-    def __init__(self, sprite, pos):
+    def __init__(self, sprite:pygame.Surface, pos:Vector2):
         super().__init__(sprite, pos)
         if self.mask.get_at(self.sprite.get_rect().topleft):    #Schräge geht von oben links nach unten rechts
             self.slopeVector = Vector2(self.rect.bottomright) - Vector2(self.rect.topleft)
@@ -84,7 +130,7 @@ class Slope(PinballComponent):
 
 
 class Slingshot(PinballComponent):
-    def __init__(self, sprite, pos):
+    def __init__(self, sprite:pygame.Surface, pos:Vector2):
         super().__init__(sprite, pos)
         if self.mask.get_at(self.sprite.get_rect().topleft + Vector2(1,0)): #Schräge geht von oben links nach unten rechts
             self.slingVector = Vector2(self.rect.bottomright) - Vector2(self.rect.topleft)
@@ -92,7 +138,7 @@ class Slingshot(PinballComponent):
             self.slingVector = Vector2(self.rect.bottomleft) - Vector2(self.rect.topright)
         self.slingVector.y *= -1
 
-    def collide(self, ball):
+    def collide(self, ball:Ball):
         """Handling der Kollision von Slingshot und Ball"""
         movementVector = self.slingVector
         movementVector.scale_to_length(14)
@@ -112,8 +158,20 @@ class Main():
         slopeSprite = pygame.transform.flip(slopeSprite, True, False)
         slingshotSprite = pygame.image.load("Assets/Sprites/Slingshot.png").convert_alpha()
         #slingshotSprite = pygame.transform.flip(slingshotSprite, True, False)
+        flipperSprite = pygame.image.load("Assets/Sprites/Flipper.png").convert_alpha()
+        flipperSprite = pygame.transform.rotate(flipperSprite, 35)
+        flipperSprite = pygame.transform.flip(flipperSprite, True, False)
         #Ball erstellen
         self.ball = Ball(ballSprite, Vector2(700, 800))
+        #Flipper erstellen
+        self.flippers:list[Flipper] = []
+        self.flippers.append(
+            Flipper(flipperSprite, Vector2(300, 550), 1)
+        )
+        flipperSprite = pygame.transform.flip(flipperSprite, True, False)
+        self.flippers.append(
+            Flipper(flipperSprite, Vector2(300, 800), -1)
+        )
         #Bumper erstellen
         self.bumpers:list[Bumper] = []
         self.bumpers.append(
@@ -130,7 +188,7 @@ class Main():
             Slingshot(slingshotSprite, Vector2(600, 750))
         )
 
-        self.components:tuple[PinballComponent] = tuple(self.bumpers + self.slopes + self.slingshots)
+        self.components:tuple[PinballComponent] = tuple(self.flippers + self.bumpers + self.slopes + self.slingshots)
 
 
     def render(self):
@@ -141,7 +199,6 @@ class Main():
         #Komponenten rendern
         for component in self.components:
             self.window.blit(component.sprite, component.rect)
-
         pygame.display.update()
 
     def userInput(self):
@@ -154,10 +211,17 @@ class Main():
                 if event.key == pygame.K_ESCAPE:
                     self.isRunning = False
                     return
+                elif event.key == pygame.K_a:
+                    self.flippers[0].isMoving = True
+                elif event.key == pygame.K_d:
+                    self.flippers[1].isMoving = True
 
-    def moveBall(self):
-        """Callt Methode für Bewegung von Ball"""
+    def moveObjects(self):
+        """Callt Methode für Bewegung von Ball und Flipper"""
         self.ball.move()
+        for flipper in self.flippers:
+            if flipper.isMoving == True:
+                flipper.move()
 
     def checkCollisions(self):
         """Prüft Kollision zwischen Ball und anderen Komponenten"""
@@ -174,7 +238,7 @@ class Main():
         while self.isRunning == True:
             self.render()
             self.checkCollisions()
-            self.moveBall()
+            self.moveObjects()
             self.userInput()
             self.clock.tick(60)
 
@@ -186,3 +250,4 @@ main.run()
 
 
 #Slingshot funktioniert von allen Seiten, später eigene Maske für Schräge und andere zwei Seiten
+#Wenn mehrere Kugeln -> Maske für flipper soll bei Rotieren von Sprite auch angepasst werden
