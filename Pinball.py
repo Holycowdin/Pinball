@@ -1,5 +1,6 @@
 import pygame
 from pygame import Rect
+import pygame.gfxdraw
 from pygame.math import Vector2
 
 WINDOW_WIDTH = 64*20
@@ -17,21 +18,33 @@ class Ball():
         self.sprite = sprite
         self.mask = pygame.mask.from_surface(self.sprite)
 
-        self.movementVector = Vector2(-7, -7)
+        self.movementVector = Vector2(7, -7)
         self.acceleration = Vector2(0.02, 0.1)
 
     def move(self):
         """Bewegt den Ball"""
         self.pos += self.movementVector
-        if (self.movementVector.x > 0) and (self.movementVector.x > self.acceleration.x):
-            self.movementVector.x -= self.acceleration.x
-        elif (self.movementVector.x < 0) and (self.movementVector.x < self.acceleration.x):
-            self.movementVector.x += self.acceleration.x
-        else:
-            self.movementVector.x = 0
+        self.accelerate(1)
 
         self.rect.center = self.pos
-        self.movementVector.y += self.acceleration.y
+
+    def accelerate(self, accelerationSign = 1):
+        if (self.movementVector.x > 0) and (self.movementVector.x > self.acceleration.x):
+            self.movementVector.x -= self.acceleration.x * accelerationSign 
+        elif (self.movementVector.x < 0) and (self.movementVector.x < self.acceleration.x):
+            self.movementVector.x += self.acceleration.x * accelerationSign
+        else:
+            self.movementVector.x = 0
+        self.movementVector.y += self.acceleration.y * accelerationSign
+        
+
+    def correctPosition(self):
+        self.pos += Vector2(0,-1)
+        #self.pos.move_towards_ip(self.pos + Vector2(0,-self.rect.height/2), 1)
+        self.rect.center = self.pos
+        #self.movementVector = Vector2(0,0)
+        self.accelerate(-1)
+        #self.movementVector -= self.acceleration
 
 
 class PinballComponent():
@@ -49,8 +62,17 @@ class PinballComponent():
 
     def checkPixelCollision(self, ballMask:pygame.Mask, ballRect:Rect) -> bool:
         """Prüft pixelgenaue Kollision für Ball und Komponente; nur gecallt, wenn Rects kollidieren"""
-        if ballMask.overlap(self.mask, (self.rect.left - ballRect.left, self.rect.top - ballRect.top)):
+        self.overlappingPixel = ballMask.overlap(self.mask, (self.rect.left - ballRect.left, self.rect.top - ballRect.top))
+        if self.overlappingPixel:
             return True
+
+    def correctBallPosition(self, ball:Ball):
+        while self.checkAllCollidingPixels(ball.mask, ball.rect) > 1:
+            ball.correctPosition()
+
+    def checkAllCollidingPixels(self, ballMask:pygame.Mask, ballRect:Rect) -> bool:
+        self.overlappingPixelCount = ballMask.overlap_area(self.mask, (self.rect.left - ballRect.left, self.rect.top - ballRect.top))
+        return self.overlappingPixelCount
 
     def collide(self, ball:Ball):
         raise NotImplementedError
@@ -77,18 +99,35 @@ class Flipper(PinballComponent):
 
     def collide(self, ball:Ball):
         """Handling der Kollision von Flipper und Ball"""
-        if self.isMoving == True:
+        if self.movingForward == True and self.rotationAngle < 70 and self.rotationAngle > -70:
             self.throwBall(ball)
             return
+        self.correctBallPosition(ball)
+        if self.rotationAngle >= 70 or self.rotationAngle <= -70:
+            """#ball.pos.move_towards_ip(Vector2(ball.pos.x, self.pos.y -42), 200)
+            ball.movementVector = Vector2(0,-0.1)"""
+            try:
+                self.slopeVector.scale_to_length(ball.movementVector.length())
+                ball.movementVector = -self.slopeVector.rotate(70)
+            except ValueError:
+                pass
+            #ball.movementVector = Vector2(0,0)
+            return
         vectorLength = ball.movementVector.length()
-        self.slopeVector.scale_to_length(vectorLength)
-        ball.movementVector = self.slopeVector.copy()
+        try:
+            self.slopeVector.scale_to_length(vectorLength)
+            ball.movementVector = self.slopeVector.copy()
+        except ValueError:  #Nullvektor
+            pass
 
     def throwBall(self, ball:Ball):
         """Wirft den Ball"""
         movementVector = self.slingVector
-        movementVector.scale_to_length(28)
-        ball.movementVector = movementVector
+        try:
+            movementVector.scale_to_length(28)
+            ball.movementVector = movementVector
+        except ValueError:  #Nullvektor
+            pass
 
     def startMoving(self):
         self.isMoving = True
@@ -123,8 +162,11 @@ class Bumper(PinballComponent):
     def collide(self, ball:Ball):
         """Handling der Kollision von Bumper und Ball"""
         movementVector = ball.pos - Vector2(self.rect.center)
-        movementVector.scale_to_length(14)
-        ball.movementVector = movementVector
+        try:
+            movementVector.scale_to_length(14)
+            ball.movementVector = movementVector
+        except ValueError:  #Nullvektor
+            pass
 
 
 class Slope(PinballComponent):
@@ -138,8 +180,11 @@ class Slope(PinballComponent):
     def collide(self, ball:Ball):
         """Handling der Kollision von Slope und Ball"""
         vectorLength = ball.movementVector.length()
-        self.slopeVector.scale_to_length(vectorLength)
-        ball.movementVector = self.slopeVector.copy()
+        try:
+            self.slopeVector.scale_to_length(vectorLength)
+            ball.movementVector = self.slopeVector.copy()
+        except ValueError:  #Nullvektor
+            pass
 
 
 class Slingshot(PinballComponent):
@@ -154,8 +199,11 @@ class Slingshot(PinballComponent):
     def collide(self, ball:Ball):
         """Handling der Kollision von Slingshot und Ball"""
         movementVector = self.slingVector
-        movementVector.scale_to_length(14)
-        ball.movementVector = movementVector
+        try:
+            movementVector.scale_to_length(14)
+            ball.movementVector = movementVector
+        except ValueError:  #Nullvektor
+            pass
 
 
 class Main():
@@ -175,7 +223,7 @@ class Main():
         flipperSprite = pygame.transform.rotate(flipperSprite, 35)
         flipperSprite = pygame.transform.flip(flipperSprite, True, False)
         #Ball erstellen
-        self.ball = Ball(ballSprite, Vector2(700, 800))
+        self.ball = Ball(ballSprite, Vector2(700, 800)) #700, 800
         #Flipper erstellen
         self.flippers:list[Flipper] = []
         self.flippers.append(
@@ -193,7 +241,7 @@ class Main():
         #Slopes erstellen
         self.slopes:list[Slope] = []
         self.slopes.append(
-            Slope(slopeSprite, Vector2(900, 0))
+            Slope(slopeSprite, Vector2(970, 510))   #980, 530
         )
         #Slingshots erstellen
         self.slingshots:list[Slingshot] = []
@@ -212,7 +260,9 @@ class Main():
         #Komponenten rendern
         for component in self.components:
             self.window.blit(component.sprite, component.rect)
-        
+        #self.window.blit(self.flippers[1].mask.to_surface(), self.flippers[1].rect)
+        #self.window.blit(self.ball.sprite, self.ball.rect)
+
         pygame.display.update()
 
     def userInput(self):
@@ -265,6 +315,6 @@ main.run()
 
 
 
-#Ball sollte man trappen können
+#Ball sollte man trappen können - aktuell zittert der Ball herum; wenn Flippertaste schnell losgelassen und wieder gedrückt wird, fällt Ball halb durch Flipper
 #Ball sollte stärker weggeworfen werden, wenn Ball weiter vorne
 #Slingshot funktioniert von allen Seiten, später eigene Maske für Schräge und andere zwei Seiten
