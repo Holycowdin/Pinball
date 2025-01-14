@@ -124,5 +124,4 @@ main.run()
 
 
 #Ball sollte man trappen können - aktuell zittert der Ball herum; wenn Flippertaste schnell losgelassen und wieder gedrückt wird, fällt Ball halb durch Flipper
-#Ball sollte stärker weggeworfen werden, wenn Ball weiter vorne
 #Slingshot funktioniert von allen Seiten, später eigene Maske für Schräge und andere zwei Seiten

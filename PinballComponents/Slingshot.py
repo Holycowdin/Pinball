@@ -17,8 +17,6 @@ class Slingshot(PinballComponent):
     def collide(self, ball:Ball):
         """Handling der Kollision von Slingshot und Ball"""
         movementVector = self.slingVector
-        try:
-            movementVector.scale_to_length(14)
-            ball.movementVector = movementVector
-        except ValueError:  #Nullvektor
-            pass
+
+        movementVector.scale_to_length(14)
+        ball.movementVector = movementVector
