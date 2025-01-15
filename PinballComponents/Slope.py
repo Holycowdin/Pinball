@@ -1,5 +1,5 @@
 from .PinballComponent import PinballComponent
-from Ball import Ball
+from Player import Ball
 
 import pygame
 from pygame.math import Vector2

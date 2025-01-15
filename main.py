@@ -1,5 +1,5 @@
-from Ball import Ball
-from PinballComponents import PinballComponent, Flipper, Bumper, Slingshot, Slope
+from Player import Ball, Player
+from PinballComponents import PinballComponent, Flipper, Bumper, Slingshot, Slope, Target
 
 import pygame
 import pygame.gfxdraw
@@ -20,6 +20,8 @@ class Main():
         self.window = pygame.display.set_mode(Vector2(WINDOW_WIDTH, WINDOW_HEIGHT))
         self.clock = pygame.time.Clock()
         self.isRunning = True
+        #Font intialisieren
+        self.font = pygame.font.SysFont("Arial", 32)
         #Sprites laden
         ballSprite = pygame.image.load("Assets/Sprites/Ball.png").convert_alpha()
         bumperSprite = pygame.image.load("Assets/Sprites/Bumper.png").convert_alpha()
@@ -30,6 +32,7 @@ class Main():
         flipperSprite = pygame.image.load("Assets/Sprites/Flipper.png").convert_alpha()
         flipperSprite = pygame.transform.rotate(flipperSprite, 35)
         flipperSprite = pygame.transform.flip(flipperSprite, True, False)
+        targetSprite = pygame.image.load("Assets/Sprites/Target.png").convert_alpha()
         #Ball erstellen
         self.ball = Ball(ballSprite, Vector2(700, 800)) #700, 800
         #Flipper erstellen
@@ -56,9 +59,15 @@ class Main():
         self.slingshots.append(
             Slingshot(slingshotSprite, Vector2(600, 750))
         )
+        #Targets erstellen
+        self.targets:list[Target] = []
+        self.targets.append(
+            Target(targetSprite, Vector2(550, 400))
+        )
 
-        self.components:tuple[PinballComponent] = tuple(self.flippers + self.bumpers + self.slopes + self.slingshots)
-
+        self.components:tuple[PinballComponent] = tuple(self.flippers + self.bumpers + self.slopes + self.slingshots + self.targets)
+        #Spieler initialisieren
+        self.player = Player()
 
     def render(self):
         """Rendert den gesamten Bildschirm, einschließlich Objekte"""
@@ -70,6 +79,8 @@ class Main():
             self.window.blit(component.sprite, component.rect)
         #self.window.blit(self.flippers[1].mask.to_surface(), self.flippers[1].rect)
         #self.window.blit(self.ball.sprite, self.ball.rect)
+        scoreText = self.font.render(str(self.player.score), True, BLACK)
+        self.window.blit(scoreText, Vector2(1200, 900))
 
         pygame.display.update()
 
@@ -106,6 +117,7 @@ class Main():
             if not component.checkPixelCollision(self.ball.mask, self.ball.rect):
                 continue
             component.collide(self.ball)
+            self.player.increaseScore(component.points)
 
 
     def run(self):
@@ -122,6 +134,9 @@ main = Main()
 main.run()
 
 
-
+#Punkteanzahl für alle Komponenten
 #Ball sollte man trappen können - aktuell zittert der Ball herum; wenn Flippertaste schnell losgelassen und wieder gedrückt wird, fällt Ball halb durch Flipper
 #Slingshot funktioniert von allen Seiten, später eigene Maske für Schräge und andere zwei Seiten
+#Ball kann auf Target stuck werden -> viele Punkte. Liegt daran, dass self.correctBallPosition gecallt wird und der Ball wieder über Target ist.
+#                                                   Lässt sich vermutlich vermeiden, indem mehrere Masken benutzt werden. Keine Punkte, wenn Ball von oben kommt
+#                                                   Bzw. vielleicht auch gar nicht möglich durch Begrenzung von Spielfeld

@@ -1,4 +1,4 @@
-from Ball import Ball
+from Player import Ball
 
 import pygame
 from pygame.math import Vector2
@@ -6,6 +6,8 @@ from pygame.rect import Rect
 
 
 class PinballComponent():
+    points:int = 0
+
     """Klasse für alle Pinball-Komponenten, außer Ball"""
     def __init__(self, sprite:pygame.Surface, pos:Vector2):
         self.sprite = sprite

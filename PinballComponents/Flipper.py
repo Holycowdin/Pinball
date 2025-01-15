@@ -1,5 +1,5 @@
 from .PinballComponent import PinballComponent
-from Ball import Ball
+from Player import Ball
 
 import pygame
 from pygame.math import Vector2
@@ -29,9 +29,11 @@ class Flipper(PinballComponent):
 
     def collide(self, ball:Ball):
         """Handling der Kollision von Flipper und Ball"""
+        #Wenn der Flipper sich gerade nach vorne bewegt, Ball werfen
         if self.movingForward == True and self.rotationAngle < MAX_ROT_ANGLE and self.rotationAngle > -MAX_ROT_ANGLE:
             self.throwBall(ball)
             return
+        #Wenn Flipper ganz oben, Ball herunterrutschen
         self.correctBallPosition(ball)
         if self.rotationAngle >= MAX_ROT_ANGLE or self.rotationAngle <= -MAX_ROT_ANGLE:
             """#ball.pos.move_towards_ip(Vector2(ball.pos.x, self.pos.y -42), 200)
@@ -52,14 +54,19 @@ class Flipper(PinballComponent):
 
     def throwBall(self, ball:Ball):
         """Wirft den Ball"""
+        #Distanz von überlappendem Pixel zu Spitze des Flippers
         overlappingPixel = self.rect.topleft + self.checkPixelCollision(ball.mask, ball.rect, returnPixel=True)
-        distance = overlappingPixel.x - self.rect.left
-        #movementVector = self.slingVector
-        slingVector = self.slopeVector.rotate(-pygame.math.lerp(15, MAX_ROT_ANGLE, distance/200))
+        if self.direction == 1:
+            distance = self.rect.right - overlappingPixel.x
+        else:
+            distance = overlappingPixel.x - self.rect.left
+        #Richtung des Movementvektors
+        slingVector = self.slopeVector.rotate(self.direction * pygame.math.lerp(15, MAX_ROT_ANGLE, distance/200))
         slingVector.y *= -1
         movementVector = slingVector
-        #movementVector = self.slopeVector.rotate(self.rotationAngle).elementwise() * Vector2(1,-1)
-        movementVector.scale_to_length(pygame.math.lerp(40, 15, distance/200))
+        #Länge des Movementvektors
+        movementVector.scale_to_length(pygame.math.lerp(30, 15, distance/200))
+
         ball.movementVector = movementVector
 
 
