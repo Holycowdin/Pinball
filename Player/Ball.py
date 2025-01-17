@@ -9,7 +9,7 @@ class Ball():
         self.sprite = sprite
         self.mask = pygame.mask.from_surface(self.sprite)
 
-        self.movementVector = Vector2(7, -7)
+        self.movementVector = Vector2(0, 0)    #7, -7
         self.acceleration = Vector2(0.02, 0.1)
 
     def move(self):

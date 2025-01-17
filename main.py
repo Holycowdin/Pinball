@@ -1,5 +1,5 @@
 from Player import Ball, Player
-from PinballComponents import PinballComponent, Flipper, Bumper, Slingshot, Slope, Target
+from PinballComponents import PinballComponent, Flipper, Bumper, Slingshot, Slope, Target, Plunger, Curve
 
 import pygame
 import pygame.gfxdraw
@@ -33,8 +33,14 @@ class Main():
         flipperSprite = pygame.transform.rotate(flipperSprite, 35)
         flipperSprite = pygame.transform.flip(flipperSprite, True, False)
         targetSprite = pygame.image.load("Assets/Sprites/Target.png").convert_alpha()
+        plungerSprite = pygame.image.load("Assets/Sprites/Plunger.png").convert_alpha()
+        #Surface für Kurve erstellen - nur vorübergehend
+        curveSurface = pygame.Surface(Vector2(300, 300))
+        curveSurface.fill(WHITE)
+        curveSurface.set_colorkey(WHITE)
+        pygame.gfxdraw.bezier(curveSurface, (Vector2(0,0), Vector2(260,40), Vector2(300,300)), 1000, BLACK)
         #Ball erstellen
-        self.ball = Ball(ballSprite, Vector2(700, 800)) #700, 800
+        self.ball = Ball(ballSprite, Vector2(1200 + 14, 700)) #700, 800
         #Flipper erstellen
         self.flippers:list[Flipper] = []
         self.flippers.append(
@@ -64,8 +70,18 @@ class Main():
         self.targets.append(
             Target(targetSprite, Vector2(550, 400))
         )
+        #Plunger erstellen
+        self.plungers:list[Plunger] = []
+        self.plungers.append(
+            Plunger(plungerSprite, Vector2(1200, 800))
+        )
+        #Kurven erstellen
+        self.curves:list[Curve] = []
+        self.curves.append(
+            Curve(curveSurface, Vector2(WINDOW_WIDTH - curveSurface.get_width(), 30))
+        )
 
-        self.components:tuple[PinballComponent] = tuple(self.flippers + self.bumpers + self.slopes + self.slingshots + self.targets)
+        self.components:tuple[PinballComponent] = tuple(self.flippers + self.bumpers + self.slopes + self.slingshots + self.targets + self.plungers + self.curves)
         #Spieler initialisieren
         self.player = Player()
 
@@ -100,6 +116,11 @@ class Main():
             self.flippers[0].startMoving()
         if keys[pygame.K_d]:
             self.flippers[1].startMoving()
+        if not self.plungers[0].hasThrown:
+            if keys[pygame.K_SPACE]:
+                self.plungers[0].startMoving(self.ball)
+            elif self.plungers[0].isMoving:
+                self.plungers[0].moveBack()
         
 
     def moveObjects(self):
@@ -108,6 +129,9 @@ class Main():
         for flipper in self.flippers:
             if flipper.isMoving == True:
                 flipper.move()
+        for plunger in self.plungers:
+            if plunger.isMoving == True:
+                plunger.move()
 
     def checkCollisions(self):
         """Prüft Kollision zwischen Ball und anderen Komponenten"""
