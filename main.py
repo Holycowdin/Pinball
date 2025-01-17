@@ -38,7 +38,7 @@ class Main():
         curveSurface = pygame.Surface(Vector2(300, 300))
         curveSurface.fill(WHITE)
         curveSurface.set_colorkey(WHITE)
-        pygame.gfxdraw.bezier(curveSurface, (Vector2(0,0), Vector2(260,40), Vector2(300,300)), 1000, BLACK)
+        pygame.gfxdraw.bezier(curveSurface, (Vector2(0,0), Vector2(260,40), Vector2(260,300)), 1000, BLACK)
         #Ball erstellen
         self.ball = Ball(ballSprite, Vector2(1200 + 14, 700)) #700, 800
         #Flipper erstellen
@@ -53,7 +53,7 @@ class Main():
         #Bumper erstellen
         self.bumpers:list[Bumper] = []
         self.bumpers.append(
-            Bumper(bumperSprite, Vector2(650, 50))  #50, 600
+            Bumper(bumperSprite, Vector2(650, 250))  #50, 600
         )
         #Slopes erstellen
         self.slopes:list[Slope] = []
@@ -78,9 +78,8 @@ class Main():
         #Kurven erstellen
         self.curves:list[Curve] = []
         self.curves.append(
-            Curve(curveSurface, Vector2(WINDOW_WIDTH - curveSurface.get_width(), 30))
+            Curve(curveSurface.convert(), Vector2(WINDOW_WIDTH - curveSurface.get_width(), 30))
         )
-
         self.components:tuple[PinballComponent] = tuple(self.flippers + self.bumpers + self.slopes + self.slingshots + self.targets + self.plungers + self.curves)
         #Spieler initialisieren
         self.player = Player()
@@ -121,7 +120,6 @@ class Main():
                 self.plungers[0].startMoving(self.ball)
             elif self.plungers[0].isMoving:
                 self.plungers[0].moveBack()
-        
 
     def moveObjects(self):
         """Callt Methode für Bewegung von Ball und Flipper"""
