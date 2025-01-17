@@ -19,7 +19,6 @@ class Curve(PinballComponent):
                 return
             #Wenn nicht zu langsam, Geschwindigkeit speichern
             self.speed = ball.movementVector.length()
-            print(self.speed)
 
         for i in range(int(self.speed)):
             collision = self.checkPixelCollision(ball.mask, ball.rect, returnPixel=True)
@@ -33,5 +32,6 @@ class Curve(PinballComponent):
                 ball.movementVector = movementVector
                 if collision.x <= 6:    #Magische Zahl; letzte x-Koordinate, bei der der Ball kollidiert
                     ball.movementVector.x = - self.speed/2
+                    ball.isOnField = True
                     return
             ball.move()

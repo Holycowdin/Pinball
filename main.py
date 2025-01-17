@@ -33,6 +33,7 @@ class Main():
         flipperSprite = pygame.transform.rotate(flipperSprite, 35)
         flipperSprite = pygame.transform.flip(flipperSprite, True, False)
         targetSprite = pygame.image.load("Assets/Sprites/Target.png").convert_alpha()
+        targetSprite = pygame.transform.smoothscale(targetSprite, Vector2(51,64))
         plungerSprite = pygame.image.load("Assets/Sprites/Plunger.png").convert_alpha()
         #Surface für Kurve erstellen - nur vorübergehend
         curveSurface = pygame.Surface(Vector2(300, 300))
@@ -115,10 +116,10 @@ class Main():
             self.flippers[0].startMoving()
         if keys[pygame.K_d]:
             self.flippers[1].startMoving()
-        if not self.plungers[0].hasThrown:
+        if not self.ball.isOnField:
             if keys[pygame.K_SPACE]:
                 self.plungers[0].startMoving(self.ball)
-            elif self.plungers[0].isMoving:
+            elif self.plungers[0].isMoving and not self.plungers[0].isMovingBack:
                 self.plungers[0].moveBack()
 
     def moveObjects(self):

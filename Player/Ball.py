@@ -11,6 +11,7 @@ class Ball():
 
         self.movementVector = Vector2(0, 0)    #7, -7
         self.acceleration = Vector2(0.02, 0.1)
+        self.isOnField = False
 
     def move(self):
         """Bewegt den Ball"""
