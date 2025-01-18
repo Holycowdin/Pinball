@@ -1,5 +1,5 @@
 from Player import Ball, Player
-from PinballComponents import PinballComponent, Flipper, Bumper, Slingshot, Slope, Target, Plunger, Curve
+from PinballComponents import PinballComponent, Flipper, Bumper, Slingshot, Slope, StationaryTarget, DropTarget, Plunger, Curve
 
 import pygame
 import pygame.gfxdraw
@@ -22,66 +22,60 @@ class Main():
         self.isRunning = True
         #Font intialisieren
         self.font = pygame.font.SysFont("Arial", 32)
-        #Sprites laden
-        ballSprite = pygame.image.load("Assets/Sprites/Ball.png").convert_alpha()
-        bumperSprite = pygame.image.load("Assets/Sprites/Bumper.png").convert_alpha()
-        slopeSprite = pygame.image.load("Assets/Sprites/Line.png").convert_alpha()
-        slopeSprite = pygame.transform.flip(slopeSprite, True, False)
-        slingshotSprite = pygame.image.load("Assets/Sprites/Slingshot.png").convert_alpha()
-        #slingshotSprite = pygame.transform.flip(slingshotSprite, True, False)
-        flipperSprite = pygame.image.load("Assets/Sprites/Flipper.png").convert_alpha()
-        flipperSprite = pygame.transform.rotate(flipperSprite, 35)
-        flipperSprite = pygame.transform.flip(flipperSprite, True, False)
-        targetSprite = pygame.image.load("Assets/Sprites/Target.png").convert_alpha()
-        targetSprite = pygame.transform.smoothscale(targetSprite, Vector2(51,64))
-        plungerSprite = pygame.image.load("Assets/Sprites/Plunger.png").convert_alpha()
-        #Surface für Kurve erstellen - nur vorübergehend
-        curveSurface = pygame.Surface(Vector2(300, 300))
-        curveSurface.fill(WHITE)
-        curveSurface.set_colorkey(WHITE)
-        pygame.gfxdraw.bezier(curveSurface, (Vector2(0,0), Vector2(260,40), Vector2(260,300)), 1000, BLACK)
         #Ball erstellen
-        self.ball = Ball(ballSprite, Vector2(1200 + 14, 700)) #700, 800
+        self.ball = Ball(Vector2(1200 + 14, 700)) #700, 800
         #Flipper erstellen
         self.flippers:list[Flipper] = []
         self.flippers.append(
-            Flipper(flipperSprite, Vector2(300, 550), 1)
+            Flipper(Vector2(300, 550), 1)
         )
-        flipperSprite = pygame.transform.flip(flipperSprite, True, False)
         self.flippers.append(
-            Flipper(flipperSprite, Vector2(800, 800), -1)   #300, 800
+            Flipper(Vector2(800, 800), -1)   #300, 800
         )
         #Bumper erstellen
         self.bumpers:list[Bumper] = []
         self.bumpers.append(
-            Bumper(bumperSprite, Vector2(650, 250))  #50, 600
+            Bumper(Vector2(650, 250), variant=1)
         )
         #Slopes erstellen
         self.slopes:list[Slope] = []
         self.slopes.append(
-            Slope(slopeSprite, Vector2(970, 510))   #980, 530
+            Slope(Vector2(970, 510))   #980, 530
         )
         #Slingshots erstellen
         self.slingshots:list[Slingshot] = []
         self.slingshots.append(
-            Slingshot(slingshotSprite, Vector2(600, 750))
+            Slingshot(Vector2(600, 700), variant=1)
         )
-        #Targets erstellen
-        self.targets:list[Target] = []
-        self.targets.append(
-            Target(targetSprite, Vector2(550, 400))
+        #Stationäre Targets erstellen
+        self.stationaryTargets:list[StationaryTarget] = []
+        self.stationaryTargets.append(
+            StationaryTarget(Vector2(550, 400), index=len(self.stationaryTargets)+1)
+        )
+        #Drop Targets erstellen
+        self.dropTargets:list[DropTarget] = []
+        self.dropTargets.append(
+            DropTarget(Vector2(1200, 400), variant=1)
+        )
+        self.dropTargets.append(
+            DropTarget(Vector2(1200, 500), variant=2)
+        )
+        self.dropTargets.append(
+            DropTarget(Vector2(1200, 600), variant=3)
         )
         #Plunger erstellen
         self.plungers:list[Plunger] = []
         self.plungers.append(
-            Plunger(plungerSprite, Vector2(1200, 800))
+            Plunger(Vector2(1200, 800))
         )
         #Kurven erstellen
         self.curves:list[Curve] = []
         self.curves.append(
-            Curve(curveSurface.convert(), Vector2(WINDOW_WIDTH - curveSurface.get_width(), 30))
+            Curve(Vector2(WINDOW_WIDTH - Curve.sprite.get_width(), 30))
         )
-        self.components:tuple[PinballComponent] = tuple(self.flippers + self.bumpers + self.slopes + self.slingshots + self.targets + self.plungers + self.curves)
+        self.components:tuple[PinballComponent] = tuple(self.flippers + self.bumpers + self.slopes + self.slingshots 
+                                                        + self.stationaryTargets + self.dropTargets 
+                                                        + self.plungers + self.curves)
         #Spieler initialisieren
         self.player = Player()
 
@@ -97,11 +91,13 @@ class Main():
         #self.window.blit(self.ball.sprite, self.ball.rect)
         scoreText = self.font.render(str(self.player.score), True, BLACK)
         self.window.blit(scoreText, Vector2(1200, 900))
+        for flipper in self.flippers:
+            pygame.gfxdraw.pixel(self.window, int(flipper.pivotPoint.x), int(flipper.pivotPoint.y), (0,255,0))
 
         pygame.display.update()
 
-    def userInput(self):
-        """Handling vom User-Input"""
+    def handleEvents(self):
+        """Handling der Events"""
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.isRunning = False
@@ -110,7 +106,19 @@ class Main():
                 if event.key == pygame.K_ESCAPE:
                     self.isRunning = False
                     return
+            #Animation von Bumper und Slingshot stoppen
+            for component in tuple(self.bumpers + self.slingshots + self.stationaryTargets):
+                if event.type == component.timerEvent:
+                    component.stopTimer()
+                    break
+            for dropTarget in self.dropTargets:
+                if event.type == dropTarget.timerEvent:
+                    self.player.multiplier = 1
+                    dropTarget.stopTimer()
+                    break
 
+    def handlePressedKeys(self):
+        """Handling der gedrückten Tasten"""
         keys = pygame.key.get_pressed()
         if keys[pygame.K_a]:
             self.flippers[0].startMoving()
@@ -141,6 +149,16 @@ class Main():
                 continue
             component.collide(self.ball)
             self.player.increaseScore(component.points)
+            if component.__class__ == DropTarget:
+                self.checkDropTargets()
+
+    def checkDropTargets(self):
+        for dropTarget in self.dropTargets:
+            if dropTarget.onField == True:  #Wenn ein Drop Target noch nicht getroffen wurde
+                return
+        for dropTarget in self.dropTargets:
+            self.player.multiplier = 2
+            dropTarget.startTimer()
 
 
     def run(self):
@@ -149,7 +167,8 @@ class Main():
             self.render()
             self.checkCollisions()
             self.moveObjects()
-            self.userInput()
+            self.handleEvents()
+            self.handlePressedKeys()
             self.clock.tick(60)
 
 

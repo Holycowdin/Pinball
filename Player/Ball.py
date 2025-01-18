@@ -3,10 +3,11 @@ from pygame.math import Vector2
 from pygame.rect import Rect
 
 class Ball():
-    def __init__(self, sprite:pygame.Surface, pos:Vector2):
+    def __init__(self, pos:Vector2):
+        self.sprite = pygame.image.load("Assets/Sprites/Ball.png").convert_alpha()
+
         self.pos = pos
-        self.rect = Rect(self.pos, sprite.get_size())
-        self.sprite = sprite
+        self.rect = Rect(self.pos, self.sprite.get_size())
         self.mask = pygame.mask.from_surface(self.sprite)
 
         self.movementVector = Vector2(0, 0)    #7, -7

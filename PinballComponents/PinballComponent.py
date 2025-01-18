@@ -9,11 +9,11 @@ class PinballComponent():
     points:int = 0
 
     """Klasse für alle Pinball-Komponenten, außer Ball"""
-    def __init__(self, sprite:pygame.Surface, pos:Vector2):
-        self.sprite = sprite
+    def __init__(self, pos:Vector2):
+        self.sprite:pygame.Surface
         self.mask = pygame.mask.from_surface(self.sprite)
         self.pos = pos
-        self.rect = Rect(self.pos, sprite.get_size())
+        self.rect = Rect(self.pos, self.sprite.get_size())
 
     def checkRectCollision(self, ballRect: Rect) -> bool:
         """Prüft Kollision der Rects von Ball und Komponente"""

@@ -9,15 +9,24 @@ MAX_ROT_ANGLE = 70
 
 
 class Flipper(PinballComponent):
-    def __init__(self, sprite:pygame.Surface, pos:Vector2, direction:int):
-        super().__init__(sprite, pos)
+    def __init__(self, pos:Vector2, direction:int):
+        self.normalSprite = pygame.image.load("Assets/Sprites/Flipper/Flipper.png").convert_alpha()
+        self.rotatedSprite = pygame.image.load("Assets/Sprites/Flipper/FlipperRotated.png").convert_alpha()
+        #Spiegeln falls nötig
+        if direction == 1:
+            self.normalSprite = pygame.transform.flip(self.normalSprite, True, False)
+            self.rotatedSprite = pygame.transform.flip(self.rotatedSprite, True, False)
+        
+        self.sprite = self.normalSprite
+
+        super().__init__(pos)
         # self.mask = pygame.mask.from_threshold(self.sprite, (255,255,255), (0,0,0,255))
-        if self.mask.get_at(self.sprite.get_rect().topleft + Vector2(14,21)):    #Schräge geht von oben links nach unten rechts
+        if self.mask.get_at(self.sprite.get_rect().topleft + Vector2(23, 23)):    #Schräge geht von oben links nach unten rechts
             self.slopeVector = Vector2(self.rect.bottomright) - Vector2(self.rect.topleft)
-            self.pivotPoint = self.pos + Vector2(14, 21)
+            self.pivotPoint = self.pos + Vector2(23, 23)    #14, 21
         else:   #Schräge geht von oben rechts nach unten links
             self.slopeVector = Vector2(self.rect.bottomleft) - Vector2(self.rect.topright)
-            self.pivotPoint = self.pos + Vector2(177, 20)
+            self.pivotPoint = self.pos + Vector2(154, 23)   #177, 20
         #self.slingVector = self.slopeVector.elementwise() * Vector2(1,-2.5)
 
         self.originalSprite = self.sprite
@@ -80,20 +89,26 @@ class Flipper(PinballComponent):
 
     def move(self):
         """Rotiert den Ball; wenn self.direction = 1: linker Flipper, wenn self.direction = -1: rechter Flipper"""
+        self.sprite = self.normalSprite
+
         if self.movingForward:
             self.rotationAngle += 8 * self.direction
         else:
             self.rotationAngle -= 5 * self.direction
         if self.rotationAngle * self.direction >= MAX_ROT_ANGLE:
             self.rotationAngle = MAX_ROT_ANGLE * self.direction
+            self.sprite = self.rotatedSprite
             self.movingForward = False
         elif self.rotationAngle * self.direction <= 0:
             self.rotationAngle = 0
             self.isMoving = False
 
         offset = self.originalRect.center - self.pivotPoint
-        offset.rotate_ip(-self.rotationAngle)
-        self.sprite = pygame.transform.rotate(self.originalSprite, self.rotationAngle)
+        if self.sprite != self.rotatedSprite:
+            self.sprite = pygame.transform.rotate(self.originalSprite, self.rotationAngle)
+            offset.rotate_ip(-self.rotationAngle)
+        else:
+            offset.rotate_ip(-self.rotationAngle + (2 * self.direction))
         rotated_rect = self.sprite.get_rect()
         rotated_rect.center = self.pivotPoint + offset
         self.rect = rotated_rect

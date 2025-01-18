@@ -3,11 +3,24 @@ from Player import Ball
 
 import pygame
 from pygame.math import Vector2
+import pygame.gfxdraw
+
+
+WHITE = (255,255,255)
+BLACK = (0,0,0)
 
 
 class Curve(PinballComponent):
-    def __init__(self, sprite:pygame.Surface, pos:Vector2):
-        super().__init__(sprite, pos)
+    sprite = pygame.Surface(Vector2(300, 300))
+    sprite.fill(WHITE)
+    sprite.set_colorkey(WHITE)
+    pygame.gfxdraw.bezier(sprite, (Vector2(0,0), Vector2(260,40), Vector2(260,300)), 1000, BLACK)
+    
+    def __init__(self, pos:Vector2):
+        self.sprite = Curve.sprite
+        self.sprite = self.sprite.convert()
+        super().__init__(pos)
+        
         self.speed = 0
 
     def collide(self, ball:Ball):

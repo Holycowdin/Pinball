@@ -10,8 +10,9 @@ MAX_OFFSET = 64
 
 
 class Plunger(PinballComponent):
-    def __init__(self, sprite:pygame.sprite, pos:Vector2):
-        super().__init__(sprite, pos)
+    def __init__(self, pos:Vector2):
+        self.sprite = pygame.image.load("Assets/Sprites/Plunger.png").convert_alpha()
+        super().__init__(pos)
         self.borderRect = self.rect.copy()
         self.isMoving = False
         self.isMovingBack = False
@@ -27,7 +28,6 @@ class Plunger(PinballComponent):
         """Wirft den Ball"""
         self.isMoving = False
         self.correctBallPosition(self.ball)
-        print(self.throwSpeed)
         movementVector = Vector2(0, -1)
         movementVector.scale_to_length(self.throwSpeed)
         self.ball.movementVector = movementVector
