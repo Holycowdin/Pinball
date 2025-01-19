@@ -9,11 +9,14 @@ class StationaryTarget(PinballComponent):
     """Spieler bekommt Punkte, wenn er Target trifft"""
     points = 50
 
-    def __init__(self, pos:Vector2, index:int):
+    def __init__(self, pos:Vector2, variant:int, index:int):
         self.normalSprite = pygame.image.load("Assets/Sprites/StationaryTarget/StationaryTarget.png").convert_alpha()
         self.normalSprite = pygame.transform.smoothscale(self.normalSprite, Vector2(51,64))
         self.glowingSprite = pygame.image.load("Assets/Sprites/StationaryTarget/StationaryTargetGlowing.png").convert_alpha()
         self.glowingSprite = pygame.transform.smoothscale(self.glowingSprite, Vector2(51,64))
+        if variant == 2:
+            self.normalSprite = pygame.transform.flip(self.normalSprite, True, False)
+            self.glowingSprite = pygame.transform.flip(self.glowingSprite, True, False)
         self.sprite = self.normalSprite
 
         super().__init__(pos)

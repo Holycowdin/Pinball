@@ -45,15 +45,17 @@ class Flipper(PinballComponent):
         #Wenn Flipper ganz oben, Ball herunterrutschen
         self.correctBallPosition(ball)
         if self.rotationAngle >= MAX_ROT_ANGLE or self.rotationAngle <= -MAX_ROT_ANGLE:
-            """#ball.pos.move_towards_ip(Vector2(ball.pos.x, self.pos.y -42), 200)
-            ball.movementVector = Vector2(0,-0.1)"""
             try:
                 self.slopeVector.scale_to_length(ball.movementVector.length())
-                ball.movementVector = -self.slopeVector.rotate(MAX_ROT_ANGLE)
+                ball.movementVector = self.slopeVector.rotate(MAX_ROT_ANGLE) * self.direction
             except ValueError:  #Nullvektor
                 pass
-            #ball.movementVector = Vector2(0,0)
+
+            collidingPixel = self.checkPixelCollision(ball.mask, ball.rect, returnPixel=True)
+            if (collidingPixel == Vector2(120,76)) or (collidingPixel == Vector2(40,76)):   #Spieler trapt den Ball
+                ball.movementVector = Vector2(0,0)
             return
+        #Wenn sich Flipper nicht bewegt und nicht ausgelenkt ist, Ball herunterrutschen lassen
         vectorLength = ball.movementVector.length()
         try:
             self.slopeVector.scale_to_length(vectorLength)
@@ -77,7 +79,7 @@ class Flipper(PinballComponent):
         slingVector.y *= -1
         movementVector = slingVector
         #Länge des Movementvektors
-        movementVector.scale_to_length(pygame.math.lerp(30, 15, distanceWeight))
+        movementVector.scale_to_length(pygame.math.lerp(ball.MAX_SPEED, 15, distanceWeight))
 
         ball.movementVector = movementVector
 
@@ -90,16 +92,20 @@ class Flipper(PinballComponent):
     def move(self):
         """Rotiert den Ball; wenn self.direction = 1: linker Flipper, wenn self.direction = -1: rechter Flipper"""
         self.sprite = self.normalSprite
-
+        #rotationAngle verändern
         if self.movingForward:
             self.rotationAngle += 8 * self.direction
         else:
             self.rotationAngle -= 5 * self.direction
+
         if self.rotationAngle * self.direction >= MAX_ROT_ANGLE:
+            #rotationAngle korrigieren, falls zu weit
             self.rotationAngle = MAX_ROT_ANGLE * self.direction
-            self.sprite = self.rotatedSprite
             self.movingForward = False
+            #rotierten Sprite speichern
+            self.sprite = self.rotatedSprite
         elif self.rotationAngle * self.direction <= 0:
+            #rotationAngle korrigieren
             self.rotationAngle = 0
             self.isMoving = False
 

@@ -11,15 +11,10 @@ BLACK = (0,0,0)
 
 
 class Curve(PinballComponent):
-    sprite = pygame.Surface(Vector2(300, 300))
-    sprite.fill(WHITE)
-    sprite.set_colorkey(WHITE)
-    pygame.gfxdraw.bezier(sprite, (Vector2(0,0), Vector2(260,40), Vector2(260,300)), 1000, BLACK)
-    
     def __init__(self, pos:Vector2):
-        self.sprite = Curve.sprite
-        self.sprite = self.sprite.convert()
+        self.sprite = pygame.image.load("Assets/Masks/Curve.png").convert_alpha()
         super().__init__(pos)
+        self.sprite = pygame.Surface(Vector2(0,0))
         
         self.speed = 0
 
@@ -43,8 +38,8 @@ class Curve(PinballComponent):
                 #Kurve weiterbewegen
                 movementVector.rotate_ip(-45)
                 ball.movementVector = movementVector
-                if collision.x <= 6:    #Magische Zahl; letzte x-Koordinate, bei der der Ball kollidiert
+                if collision.x == 0:
                     ball.movementVector.x = - self.speed/2
-                    ball.isOnField = True
+                    ball.fieldCoordinates = Vector2(self.rect.topleft)
                     return
             ball.move()

@@ -6,3 +6,4 @@ from .Slingshot import Slingshot
 from .Target import StationaryTarget, DropTarget
 from .Plunger import Plunger
 from .Curve import Curve
+from .Wall import Wall

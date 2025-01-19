@@ -7,6 +7,8 @@ from pygame.math import Vector2
 
 class Bumper(PinballComponent):
     """Varianten gehen von 1 bis 3"""
+    points = 20
+
     def __init__(self, pos:Vector2, variant:int):
         self.normalSprite = pygame.image.load(f"Assets/Sprites/Bumper/Bumper{variant}.png").convert_alpha()
         self.glowingSprite = pygame.image.load(f"Assets/Sprites/Bumper/Bumper{variant}Glowing.png").convert_alpha()

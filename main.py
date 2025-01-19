@@ -1,13 +1,13 @@
 from Player import Ball, Player
-from PinballComponents import PinballComponent, Flipper, Bumper, Slingshot, Slope, StationaryTarget, DropTarget, Plunger, Curve
+from PinballComponents import PinballComponent, Flipper, Bumper, Slingshot, Slope, StationaryTarget, DropTarget, Plunger, Curve, Wall
 
 import pygame
 import pygame.gfxdraw
 from pygame.math import Vector2
 
 
-WINDOW_WIDTH = 64*20
-WINDOW_HEIGHT = 64*15
+WINDOW_WIDTH = 1322 #64*20
+WINDOW_HEIGHT = 64*15 + 32
 
 BLACK = (0,0,0)
 WHITE = (255,255,255)
@@ -22,77 +22,121 @@ class Main():
         self.isRunning = True
         #Font intialisieren
         self.font = pygame.font.SysFont("Arial", 32)
+        #Hintergrund laden
+        self.backgroundImage = pygame.image.load("Assets/Sprites/Background.png").convert()
         #Ball erstellen
-        self.ball = Ball(Vector2(1200 + 14, 700)) #700, 800
+        self.ball = Ball(Vector2(1247, 700))
         #Flipper erstellen
         self.flippers:list[Flipper] = []
         self.flippers.append(
-            Flipper(Vector2(300, 550), 1)
+            Flipper(Vector2(390, 850), 1)   #350, 850
         )
         self.flippers.append(
-            Flipper(Vector2(800, 800), -1)   #300, 800
+            Flipper(Vector2(self.flippers[0].rect.right + 100, self.flippers[0].rect.top), -1)   #300, 800
         )
         #Bumper erstellen
         self.bumpers:list[Bumper] = []
         self.bumpers.append(
-            Bumper(Vector2(650, 250), variant=1)
+            Bumper(Vector2(self.flippers[0].rect.right + 50-40, 150), variant=1)
+        )
+        self.bumpers.append(
+            Bumper(Vector2(self.bumpers[0].rect.centerx - 60-80, self.bumpers[0].rect.centery + 60+40), variant=2)
+        )
+        self.bumpers.append(
+            Bumper(Vector2(self.bumpers[0].rect.centerx + 60, self.bumpers[1].rect.top), variant=3)
         )
         #Slopes erstellen
         self.slopes:list[Slope] = []
         self.slopes.append(
-            Slope(Vector2(970, 510))   #980, 530
+            Slope(Vector2(self.flippers[0].rect.left-250 + 15+8, self.flippers[0].rect.top - 146-3), Slope.Variant.NORMAL_LEFT)
+        )
+        self.slopes.append(
+            Slope(Vector2(self.flippers[1].rect.right-15-8, self.slopes[0].rect.top), Slope.Variant.NORMAL_RIGHT)   #self.flippers[1].rect.right-10, self.flippers[1].rect.top - 146 + 5
+        )
+        self.slopes.append(
+            Slope(Vector2(33, 748), Slope.Variant.EDGE_LEFT)
+        )
+        self.slopes.append(
+            Slope(Vector2(916, self.slopes[-1].rect.top), Slope.Variant.EDGE_RIGHT)
         )
         #Slingshots erstellen
         self.slingshots:list[Slingshot] = []
         self.slingshots.append(
-            Slingshot(Vector2(600, 700), variant=1)
+            Slingshot(Vector2(self.flippers[0].rect.left - 120, self.flippers[0].rect.top - 400), Slingshot.Variant.LEFT)
+        )
+        self.slingshots.append(
+            Slingshot(Vector2(self.flippers[1].rect.right, self.slingshots[0].rect.top), Slingshot.Variant.RIGHT)
         )
         #Stationäre Targets erstellen
         self.stationaryTargets:list[StationaryTarget] = []
         self.stationaryTargets.append(
-            StationaryTarget(Vector2(550, 400), index=len(self.stationaryTargets)+1)
+            StationaryTarget(Vector2(self.slopes[0].rect.left - 51, self.bumpers[0].rect.top), variant=1, index=len(self.stationaryTargets)+1)
+        )
+        self.stationaryTargets.append(
+            StationaryTarget(Vector2(self.slopes[1].rect.right, self.bumpers[0].rect.bottom - 20), variant=2, index=len(self.stationaryTargets)+1)
+        )
+        self.stationaryTargets.append(
+            StationaryTarget(Vector2(self.stationaryTargets[1].rect.left, self.stationaryTargets[1].rect.bottom + 10), variant=2, index=len(self.stationaryTargets)+1)
         )
         #Drop Targets erstellen
         self.dropTargets:list[DropTarget] = []
         self.dropTargets.append(
-            DropTarget(Vector2(1200, 400), variant=1)
+            DropTarget(Vector2(self.stationaryTargets[0].rect.left, self.stationaryTargets[0].rect.bottom + 20), variant=1)
         )
         self.dropTargets.append(
-            DropTarget(Vector2(1200, 500), variant=2)
+            DropTarget(Vector2(self.slopes[1].rect.right - 120//2 - 51/2, self.slopes[1].rect.top - 60), variant=2)
         )
         self.dropTargets.append(
-            DropTarget(Vector2(1200, 600), variant=3)
+            DropTarget(Vector2(
+                                self.bumpers[0].rect.centerx - 51/2, 
+                                2*self.bumpers[0].rect.bottom + self.bumpers[0].rect.height - self.bumpers[1].rect.top), 
+                        variant=3)
         )
         #Plunger erstellen
         self.plungers:list[Plunger] = []
         self.plungers.append(
-            Plunger(Vector2(1200, 800))
+            Plunger(Vector2(self.ball.rect.left-20, 802))
         )
         #Kurven erstellen
         self.curves:list[Curve] = []
         self.curves.append(
-            Curve(Vector2(WINDOW_WIDTH - Curve.sprite.get_width(), 30))
+            Curve(Vector2(923, 34))
+        )
+        #Wände erstellen
+        self.walls:list[Wall] = []
+        self.walls.append(
+            Wall(Vector2(0,0), pygame.image.load("Assets/Masks/Walls/LeftBorder.png").convert_alpha(), Wall.Type.VERTICAL)
+        )
+        self.walls.append(
+            Wall(Vector2(0,0), pygame.image.load("Assets/Masks/Walls/UpperBorder.png").convert_alpha(), Wall.Type.HORIZONTAL)
+        )
+        self.walls.append(
+            Wall(self.curves[0].rect.topleft, pygame.image.load("Assets/Masks/Walls/StartingWall.png").convert_alpha(), Wall.Type.VERTICAL)
+        )
+        self.walls.append(
+            Wall(Vector2(self.curves[0].rect.left, 100), pygame.image.load("Assets/Masks/Walls/CurvedWall.png").convert_alpha(), Wall.Type.CURVED)
+        )
+        self.walls.append(
+            Wall(self.walls[-1].rect.bottomright - Vector2(3, 0), pygame.image.load("Assets/Masks/Walls/RightBorder.png").convert_alpha(), Wall.Type.VERTICAL)
         )
         self.components:tuple[PinballComponent] = tuple(self.flippers + self.bumpers + self.slopes + self.slingshots 
                                                         + self.stationaryTargets + self.dropTargets 
-                                                        + self.plungers + self.curves)
+                                                        + self.plungers + self.curves + self.walls)
         #Spieler initialisieren
         self.player = Player()
 
     def render(self):
         """Rendert den gesamten Bildschirm, einschließlich Objekte"""
-        self.window.fill(LIGHT_GREY)
+        self.window.fill(BLACK)
+        #Hintergrund rendern
+        self.window.blit(self.backgroundImage, Vector2(0,0))
         #Ball rendern
         self.window.blit(self.ball.sprite, self.ball.rect)
         #Komponenten rendern
         for component in self.components:
             self.window.blit(component.sprite, component.rect)
-        #self.window.blit(self.flippers[1].mask.to_surface(), self.flippers[1].rect)
-        #self.window.blit(self.ball.sprite, self.ball.rect)
         scoreText = self.font.render(str(self.player.score), True, BLACK)
         self.window.blit(scoreText, Vector2(1200, 900))
-        for flipper in self.flippers:
-            pygame.gfxdraw.pixel(self.window, int(flipper.pivotPoint.x), int(flipper.pivotPoint.y), (0,255,0))
 
         pygame.display.update()
 
@@ -176,9 +220,9 @@ main = Main()
 main.run()
 
 
-#Punkteanzahl für alle Komponenten
-#Ball sollte man trappen können - aktuell zittert der Ball herum; wenn Flippertaste schnell losgelassen und wieder gedrückt wird, fällt Ball halb durch Flipper
+#Cap für Geschwindigkeit
 #Slingshot funktioniert von allen Seiten, später eigene Maske für Schräge und andere zwei Seiten
 #Ball kann auf Target stuck werden -> viele Punkte. Liegt daran, dass self.correctBallPosition gecallt wird und der Ball wieder über Target ist.
 #                                                   Lässt sich vermutlich vermeiden, indem mehrere Masken benutzt werden. Keine Punkte, wenn Ball von oben kommt
 #                                                   Bzw. vielleicht auch gar nicht möglich durch Begrenzung von Spielfeld
+#Vielleicht Ball über anderen Komponenten zeichnen
