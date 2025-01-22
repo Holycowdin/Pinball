@@ -70,18 +70,18 @@ class Main():
         #Stationäre Targets erstellen
         self.stationaryTargets:list[StationaryTarget] = []
         self.stationaryTargets.append(
-            StationaryTarget(Vector2(self.slopes[0].rect.left - 51, self.bumpers[0].rect.top), variant=1, index=len(self.stationaryTargets)+1)
+            StationaryTarget(Vector2(self.slopes[0].rect.left, self.bumpers[0].rect.bottom-50), variant=1, index=len(self.stationaryTargets)+1)
         )
         self.stationaryTargets.append(
-            StationaryTarget(Vector2(self.slopes[1].rect.right, self.bumpers[0].rect.bottom - 20), variant=2, index=len(self.stationaryTargets)+1)
+            StationaryTarget(Vector2(self.slopes[1].rect.right-50, self.bumpers[1].rect.top), variant=2, index=len(self.stationaryTargets)+1)
         )
-        self.stationaryTargets.append(
+        """self.stationaryTargets.append(
             StationaryTarget(Vector2(self.stationaryTargets[1].rect.left, self.stationaryTargets[1].rect.bottom + 10), variant=2, index=len(self.stationaryTargets)+1)
-        )
+        )"""
         #Drop Targets erstellen
         self.dropTargets:list[DropTarget] = []
         self.dropTargets.append(
-            DropTarget(Vector2(self.stationaryTargets[0].rect.left, self.stationaryTargets[0].rect.bottom + 20), variant=1)
+            DropTarget(Vector2(self.stationaryTargets[0].rect.left - 75, self.stationaryTargets[0].rect.top - 75), variant=1)
         )
         self.dropTargets.append(
             DropTarget(Vector2(self.slopes[1].rect.right - 120//2 - 51/2, self.slopes[1].rect.top - 60), variant=2)
@@ -220,9 +220,5 @@ main = Main()
 main.run()
 
 
-#Cap für Geschwindigkeit
-#Slingshot funktioniert von allen Seiten, später eigene Maske für Schräge und andere zwei Seiten
-#Ball kann auf Target stuck werden -> viele Punkte. Liegt daran, dass self.correctBallPosition gecallt wird und der Ball wieder über Target ist.
-#                                                   Lässt sich vermutlich vermeiden, indem mehrere Masken benutzt werden. Keine Punkte, wenn Ball von oben kommt
-#                                                   Bzw. vielleicht auch gar nicht möglich durch Begrenzung von Spielfeld
+#Verlust von Geschwindigkeit beim Abprallen
 #Vielleicht Ball über anderen Komponenten zeichnen

@@ -72,8 +72,10 @@ class Flipper(PinballComponent):
         else:
             distance = overlappingPixel.x - self.rect.left
         distanceWeight = distance/self.rect.width
-        assert (distanceWeight > 0), f"{distance}, {self.rect.width}"
-        assert (distanceWeight < 1), f"{distance}, {self.rect.width}"
+        if distanceWeight < 0 or distanceWeight > 1:
+            return
+        #assert (distanceWeight > 0), f"{distance}, {self.rect.width}"
+        #assert (distanceWeight < 1), f"{distance}, {self.rect.width}"
         #Richtung des Movementvektors
         slingVector = self.slopeVector.rotate(self.direction * pygame.math.lerp(15, MAX_ROT_ANGLE, distanceWeight))
         slingVector.y *= -1

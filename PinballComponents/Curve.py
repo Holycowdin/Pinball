@@ -20,6 +20,9 @@ class Curve(PinballComponent):
 
     def collide(self, ball:Ball):
         """Handling der Kollision von Kurve und Ball"""
+        if ball.isOnField:
+            return
+        
         if self.speed == 0: #Wenn Kugel noch nicht durchgefahren ist
             if ball.movementVector.length() <= 10:  #Wenn Kugel zu langsam
                 #Wieder nach unten bewegen

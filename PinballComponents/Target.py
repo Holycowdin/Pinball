@@ -11,9 +11,9 @@ class StationaryTarget(PinballComponent):
 
     def __init__(self, pos:Vector2, variant:int, index:int):
         self.normalSprite = pygame.image.load("Assets/Sprites/StationaryTarget/StationaryTarget.png").convert_alpha()
-        self.normalSprite = pygame.transform.smoothscale(self.normalSprite, Vector2(51,64))
+        #self.normalSprite = pygame.transform.smoothscale(self.normalSprite, Vector2(51,64))
         self.glowingSprite = pygame.image.load("Assets/Sprites/StationaryTarget/StationaryTargetGlowing.png").convert_alpha()
-        self.glowingSprite = pygame.transform.smoothscale(self.glowingSprite, Vector2(51,64))
+        #self.glowingSprite = pygame.transform.smoothscale(self.glowingSprite, Vector2(51,64))
         if variant == 2:
             self.normalSprite = pygame.transform.flip(self.normalSprite, True, False)
             self.glowingSprite = pygame.transform.flip(self.glowingSprite, True, False)
@@ -26,8 +26,10 @@ class StationaryTarget(PinballComponent):
 
     def collide(self, ball:Ball):
         """Handling der Kollision von Target und Ball"""
-        self.correctBallPosition(ball)
-        ball.movementVector.x *= -1
+        speed = ball.movementVector.length()
+        movementVector = ball.pos - Vector2(self.rect.center)
+        movementVector.scale_to_length(speed)
+        ball.movementVector = movementVector
 
         self.sprite = self.glowingSprite
         self.startTimer()

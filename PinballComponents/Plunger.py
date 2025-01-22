@@ -27,7 +27,8 @@ class Plunger(PinballComponent):
     def throwBall(self):
         """Wirft den Ball"""
         self.isMoving = False
-        self.correctBallPosition(self.ball)
+        self.ball.pos.y = self.borderRect.top - self.ball.rect.height//2
+        self.ball.rect.center = self.ball.pos
         movementVector = Vector2(0, -1)
         movementVector.scale_to_length(self.throwSpeed)
         self.ball.movementVector = movementVector
@@ -55,18 +56,12 @@ class Plunger(PinballComponent):
         if self.rect.top <= self.pos.y:
             self.rect.top = self.pos.y
             self.isMoving = False
-            if self.checkPixelCollision(self.ball.mask, self.ball.rect, plungerCollision=True):
-                self.throwBall()
-        self.correctBallPosition(self.ball)
+            self.throwBall()
 
     def checkRectCollision(self, ballRect:Rect) -> bool:
         """Prüft Kollision der Rects von Ball und Komponente"""
         if self.borderRect.colliderect(ballRect):
             return True
 
-    def checkPixelCollision(self, ballMask:pygame.Mask, ballRect:Rect, plungerCollision=False):
-        if not plungerCollision:
-            return True
-        self.overlappingPixel = self.mask.overlap(ballMask, (ballRect.left - self.rect.left, ballRect.top - self.rect.top))
-        if self.overlappingPixel:
-            return True
+    def checkPixelCollision(self, ballMask:pygame.Mask, ballRect:Rect):
+        return True
