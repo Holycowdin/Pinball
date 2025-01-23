@@ -1,5 +1,6 @@
 from .PinballComponent import PinballComponent
 from Player import Ball
+from Mixer import Mixer
 
 import pygame
 from pygame import Rect
@@ -10,13 +11,15 @@ MAX_OFFSET = 64
 
 
 class Plunger(PinballComponent):
-    def __init__(self, pos:Vector2):
+    def __init__(self, pos:Vector2, mixer:Mixer):
         self.sprite = pygame.image.load("Assets/Sprites/Plunger.png").convert_alpha()
         super().__init__(pos)
         self.borderRect = self.rect.copy()
         self.isMoving = False
         self.isMovingBack = False
         self.movementFactor = 1  # positiv heißt Plunger bewegt sich nach unten, negativ heißt Plunger bewegt sich nach oben
+
+        self.mixer = mixer
 
     def collide(self, ball:Ball):
         """Handling der Kollision von Plunger und Ball"""
@@ -32,6 +35,8 @@ class Plunger(PinballComponent):
         movementVector = Vector2(0, -1)
         movementVector.scale_to_length(self.throwSpeed)
         self.ball.movementVector = movementVector
+
+        self.mixer.playSound(Mixer.Sound.COLLISION)
         
     def startMoving(self, ball:Ball):
         """Startet Bewegung für Plunger"""

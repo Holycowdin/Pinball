@@ -1,5 +1,6 @@
 from .PinballComponent import PinballComponent
 from Player import Ball
+from Mixer import Mixer
 
 import pygame
 from pygame.math import Vector2
@@ -9,7 +10,9 @@ MAX_ROT_ANGLE = 70
 
 
 class Flipper(PinballComponent):
-    def __init__(self, pos:Vector2, direction:int):
+    sound = Mixer.Sound.COLLISION
+
+    def __init__(self, pos:Vector2, direction:int, mixer:Mixer):
         self.normalSprite = pygame.image.load("Assets/Sprites/Flipper/Flipper.png").convert_alpha()
         self.rotatedSprite = pygame.image.load("Assets/Sprites/Flipper/FlipperRotated.png").convert_alpha()
         #Spiegeln falls nötig
@@ -35,6 +38,8 @@ class Flipper(PinballComponent):
         self.movingForward = False
         self.rotationAngle = 0
         self.direction = direction
+
+        self.mixer = mixer
 
     def collide(self, ball:Ball):
         """Handling der Kollision von Flipper und Ball"""
@@ -85,6 +90,7 @@ class Flipper(PinballComponent):
 
         ball.movementVector = movementVector
 
+        self.mixer.playSound(Flipper.sound)
 
     def startMoving(self):
         """Setzt Variablen zum Start der Bewegung"""

@@ -1,5 +1,6 @@
 from Player import Ball, Player
 from PinballComponents import PinballComponent, Flipper, Bumper, Slingshot, Slope, StationaryTarget, DropTarget, Plunger, Curve, Wall
+from Mixer import Mixer
 
 import pygame
 import pygame.gfxdraw
@@ -20,6 +21,8 @@ class Main():
         self.window = pygame.display.set_mode(Vector2(WINDOW_WIDTH, WINDOW_HEIGHT))
         self.clock = pygame.time.Clock()
         self.isRunning = True
+        #Sound-Mixer initialisieren
+        self.mixer = Mixer()
         #Font intialisieren
         self.font = pygame.font.SysFont("Arial", 32)
         #Hintergrund laden
@@ -29,10 +32,10 @@ class Main():
         #Flipper erstellen
         self.flippers:list[Flipper] = []
         self.flippers.append(
-            Flipper(Vector2(390, 850), 1)   #350, 850
+            Flipper(Vector2(390, 850), direction=1, mixer=self.mixer)   #350, 850
         )
         self.flippers.append(
-            Flipper(Vector2(self.flippers[0].rect.right + 100, self.flippers[0].rect.top), -1)   #300, 800
+            Flipper(Vector2(self.flippers[0].rect.right + 100, self.flippers[0].rect.top), direction=-1, mixer=self.mixer)   #300, 800
         )
         #Bumper erstellen
         self.bumpers:list[Bumper] = []
@@ -62,10 +65,10 @@ class Main():
         #Slingshots erstellen
         self.slingshots:list[Slingshot] = []
         self.slingshots.append(
-            Slingshot(Vector2(self.flippers[0].rect.left - 120, self.flippers[0].rect.top - 400), Slingshot.Variant.LEFT)
+            Slingshot(Vector2(self.flippers[0].rect.left - 120, self.flippers[0].rect.top - 400), Slingshot.Variant.LEFT, self.mixer)
         )
         self.slingshots.append(
-            Slingshot(Vector2(self.flippers[1].rect.right, self.slingshots[0].rect.top), Slingshot.Variant.RIGHT)
+            Slingshot(Vector2(self.flippers[1].rect.right, self.slingshots[0].rect.top), Slingshot.Variant.RIGHT, self.mixer)
         )
         #Stationäre Targets erstellen
         self.stationaryTargets:list[StationaryTarget] = []
@@ -95,7 +98,7 @@ class Main():
         #Plunger erstellen
         self.plungers:list[Plunger] = []
         self.plungers.append(
-            Plunger(Vector2(self.ball.rect.left-20, 802))
+            Plunger(Vector2(self.ball.rect.left-20, 802), self.mixer)
         )
         #Kurven erstellen
         self.curves:list[Curve] = []
@@ -119,6 +122,7 @@ class Main():
         self.walls.append(
             Wall(self.walls[-1].rect.bottomright - Vector2(3, 0), pygame.image.load("Assets/Masks/Walls/RightBorder.png").convert_alpha(), Wall.Type.VERTICAL)
         )
+        del self.walls[-1].sound
         self.components:tuple[PinballComponent] = tuple(self.flippers + self.bumpers + self.slopes + self.slingshots 
                                                         + self.stationaryTargets + self.dropTargets 
                                                         + self.plungers + self.curves + self.walls)
@@ -130,11 +134,12 @@ class Main():
         self.window.fill(BLACK)
         #Hintergrund rendern
         self.window.blit(self.backgroundImage, Vector2(0,0))
-        #Ball rendern
-        self.window.blit(self.ball.sprite, self.ball.rect)
         #Komponenten rendern
         for component in self.components:
             self.window.blit(component.sprite, component.rect)
+        #Ball rendern
+        self.window.blit(self.ball.sprite, self.ball.rect)
+        #Punktanzeige rendern
         scoreText = self.font.render(str(self.player.score), True, BLACK)
         self.window.blit(scoreText, Vector2(1200, 900))
 
@@ -164,9 +169,9 @@ class Main():
     def handlePressedKeys(self):
         """Handling der gedrückten Tasten"""
         keys = pygame.key.get_pressed()
-        if keys[pygame.K_a]:
+        if keys[pygame.K_a] or keys[pygame.K_LEFT]:
             self.flippers[0].startMoving()
-        if keys[pygame.K_d]:
+        if keys[pygame.K_d] or keys[pygame.K_RIGHT]:
             self.flippers[1].startMoving()
         if not self.ball.isOnField:
             if keys[pygame.K_SPACE]:
@@ -193,8 +198,16 @@ class Main():
                 continue
             component.collide(self.ball)
             self.player.increaseScore(component.points)
+            self.playSound(component)
             if component.__class__ == DropTarget:
                 self.checkDropTargets()
+
+    def playSound(self, component:PinballComponent):
+        if component.__class__ in (Bumper, StationaryTarget, DropTarget, Wall):
+            try:
+                self.mixer.playSound(component.sound)
+            except AttributeError:  #Kein Sound gespeichert
+                pass
 
     def checkDropTargets(self):
         for dropTarget in self.dropTargets:
@@ -220,5 +233,3 @@ main = Main()
 main.run()
 
 
-#Verlust von Geschwindigkeit beim Abprallen
-#Vielleicht Ball über anderen Komponenten zeichnen

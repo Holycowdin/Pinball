@@ -1,5 +1,6 @@
 from .PinballComponent import PinballComponent
 from Player import Ball
+from Mixer import Mixer
 
 import pygame
 from pygame.math import Vector2
@@ -8,6 +9,7 @@ from pygame.math import Vector2
 class StationaryTarget(PinballComponent):
     """Spieler bekommt Punkte, wenn er Target trifft"""
     points = 50
+    sound = Mixer.Sound.STATIONARY_TARGET
 
     def __init__(self, pos:Vector2, variant:int, index:int):
         self.normalSprite = pygame.image.load("Assets/Sprites/StationaryTarget/StationaryTarget.png").convert_alpha()
@@ -27,6 +29,7 @@ class StationaryTarget(PinballComponent):
     def collide(self, ball:Ball):
         """Handling der Kollision von Target und Ball"""
         speed = ball.movementVector.length()
+        speed *= 0.9
         movementVector = ball.pos - Vector2(self.rect.center)
         movementVector.scale_to_length(speed)
         ball.movementVector = movementVector
@@ -44,6 +47,7 @@ class StationaryTarget(PinballComponent):
 class DropTarget(PinballComponent):
     """Wenn alle 3 Targets getroffen: Targets verschwinden, Multiplikator für Punkte"""
     points = 50
+    sound = Mixer.Sound.DROP_TARGET
 
     def __init__(self, pos:Vector2, variant:int):
         self.normalSprite = pygame.image.load(f"Assets/Sprites/DropTarget/DropTarget{variant}.png").convert_alpha()

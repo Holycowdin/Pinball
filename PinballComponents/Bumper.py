@@ -1,5 +1,6 @@
 from .PinballComponent import PinballComponent
 from Player import Ball
+from Mixer import Mixer
 
 import pygame
 from pygame.math import Vector2
@@ -8,6 +9,7 @@ from pygame.math import Vector2
 class Bumper(PinballComponent):
     """Varianten gehen von 1 bis 3"""
     points = 20
+    sound = Mixer.Sound.BUMPER
 
     def __init__(self, pos:Vector2, variant:int):
         self.normalSprite = pygame.image.load(f"Assets/Sprites/Bumper/Bumper{variant}.png").convert_alpha()
@@ -22,7 +24,7 @@ class Bumper(PinballComponent):
     def collide(self, ball:Ball):
         """Handling der Kollision von Bumper und Ball"""
         movementVector = ball.pos - Vector2(self.rect.center)
-        movementVector.scale_to_length(14)
+        movementVector.scale_to_length(ball.MAX_SPEED-5)
         ball.movementVector = movementVector
 
         self.sprite = self.glowingSprite
