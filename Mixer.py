@@ -22,6 +22,10 @@ class Mixer():
         }
         self.soundDict[Mixer.Sound.BUMPER].set_volume(0.5)
 
+        mixer.music.load("Assets/Music/Song.mp3")
+        mixer.music.set_volume(0.7)
+        mixer.music.play(-1)
+
     def playSound(self, sound:Sound):
         if (sound == Mixer.Sound.COLLISION) and (mixer.Sound.get_num_channels(self.soundDict[sound]) > 0):
             return
