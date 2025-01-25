@@ -13,7 +13,7 @@ class Ball():
         self.rect = Rect(self.pos, self.sprite.get_size())
         self.mask = pygame.mask.from_surface(self.sprite)
 
-        self.movementVector = Vector2(0, 3) #0,3
+        self.movementVector = Vector2(0, 3)
         self.acceleration = Vector2(0.02, 0.1)
         self.isOnField = False
         self.fieldCoordinates = Vector2(0,0)
@@ -29,6 +29,7 @@ class Ball():
         self.rect.center = self.pos
 
     def accelerate(self, accelerationSign = 1):
+        """Beschleunigt den Ball positiv oder negativ, je nach accelerationSign"""
         if (self.movementVector.x > 0 and 
             self.movementVector.x > self.acceleration.x):
             #Ball bewegt sich nach rechts, negative Beschleunigung

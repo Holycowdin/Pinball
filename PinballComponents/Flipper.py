@@ -33,7 +33,7 @@ class Flipper(PinballComponent):
         #self.slingVector = self.slopeVector.elementwise() * Vector2(1,-2.5)
 
         self.originalSprite = self.sprite
-        self.originalRect = self.rect
+        self.originalRect:pygame.Rect = self.rect
         self.isMoving = False
         self.movingForward = False
         self.rotationAngle = 0

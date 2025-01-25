@@ -6,9 +6,9 @@ from pygame.rect import Rect
 
 
 class PinballComponent():
+    """Klasse für alle Pinball-Komponenten, außer Ball"""
     points:int = 0
 
-    """Klasse für alle Pinball-Komponenten, außer Ball"""
     def __init__(self, pos:Vector2):
         self.sprite:pygame.Surface
         self.mask = pygame.mask.from_surface(self.sprite)
@@ -30,10 +30,12 @@ class PinballComponent():
             return Vector2(overlappingPixel)
 
     def correctBallPosition(self, ball:Ball):
+        """Korrigiert die Ballposition, sodass der Ball nicht in Komponente steckt"""
         while self.checkAllOverlappingPixels(ball.mask, ball.rect) > 1:
             ball.correctPosition()
 
-    def checkAllOverlappingPixels(self, ballMask:pygame.Mask, ballRect:Rect) -> bool:
+    def checkAllOverlappingPixels(self, ballMask:pygame.Mask, ballRect:Rect) -> int:
+        """Gibt Anzahl überlappender Pixel aus"""
         overlappingPixelCount = ballMask.overlap_area(self.mask, (self.rect.left - ballRect.left, self.rect.top - ballRect.top))
         return overlappingPixelCount
 

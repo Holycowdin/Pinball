@@ -34,10 +34,10 @@ class Main():
         #Flipper erstellen
         self.flippers:list[Flipper] = []
         self.flippers.append(
-            Flipper(Vector2(390, 850), direction=1, mixer=self.mixer)   #350, 850
+            Flipper(Vector2(390, 850), direction=1, mixer=self.mixer)
         )
         self.flippers.append(
-            Flipper(Vector2(self.flippers[0].rect.right + 100, self.flippers[0].rect.top), direction=-1, mixer=self.mixer)   #300, 800
+            Flipper(Vector2(self.flippers[0].rect.right + 100, self.flippers[0].rect.top), direction=-1, mixer=self.mixer)
         )
         #Bumper erstellen
         self.bumpers:list[Bumper] = []
@@ -80,9 +80,6 @@ class Main():
         self.stationaryTargets.append(
             StationaryTarget(Vector2(self.slopes[1].rect.right-50, self.bumpers[1].rect.top), variant=2, index=len(self.stationaryTargets)+1)
         )
-        """self.stationaryTargets.append(
-            StationaryTarget(Vector2(self.stationaryTargets[1].rect.left, self.stationaryTargets[1].rect.bottom + 10), variant=2, index=len(self.stationaryTargets)+1)
-        )"""
         #Drop Targets erstellen
         self.dropTargets:list[DropTarget] = []
         self.dropTargets.append(
@@ -207,10 +204,10 @@ class Main():
         """Callt Methode für Bewegung von Ball und Flipper"""
         self.ball.move()
         for flipper in self.flippers:
-            if flipper.isMoving == True:
+            if flipper.isMoving:
                 flipper.move()
         for plunger in self.plungers:
-            if plunger.isMoving == True:
+            if plunger.isMoving:
                 plunger.move()
 
     def checkCollisions(self):
@@ -227,6 +224,7 @@ class Main():
                 self.checkDropTargets()
 
     def playSound(self, component:PinballComponent):
+        """Callt playSound() beim Mixer"""
         if component.__class__ in (Bumper, StationaryTarget, DropTarget, Wall):
             try:
                 self.mixer.playSound(component.sound)
@@ -234,8 +232,9 @@ class Main():
                 pass
 
     def checkDropTargets(self):
+        """Schaut, ob alle DropTargets eingesammelt wurden"""
         for dropTarget in self.dropTargets:
-            if dropTarget.onField == True:  #Wenn ein Drop Target noch nicht getroffen wurde
+            if dropTarget.onField:  #Wenn ein Drop Target noch nicht getroffen wurde
                 return
         for dropTarget in self.dropTargets:
             self.player.multiplier = 2
@@ -244,7 +243,7 @@ class Main():
 
     def run(self):
         """Game-Loop"""
-        while self.isRunning == True:
+        while self.isRunning:
             self.render()
             self.checkCollisions()
             self.moveObjects()

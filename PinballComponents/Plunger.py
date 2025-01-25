@@ -56,12 +56,18 @@ class Plunger(PinballComponent):
     def move(self):
         """Bewegt den Plunger"""
         self.rect.move_ip(0, 1 * self.movementFactor)
+        #Maximale Auslenkung
         if self.rect.top >= (self.pos.y + MAX_OFFSET):
             self.rect.top = self.pos.y + MAX_OFFSET
-        if self.rect.top <= self.pos.y:
-            self.rect.top = self.pos.y
-            self.isMoving = False
-            self.throwBall()
+            return
+        #Nicht wieder ganz oben
+        if not (self.rect.top <= self.pos.y):
+            return
+        #Plunger wieder ganz oben
+        self.rect.top = self.pos.y
+        self.isMoving = False
+        if self.checkRectCollision(self.ball):
+                self.throwBall()
 
     def checkRectCollision(self, ballRect:Rect) -> bool:
         """Prüft Kollision der Rects von Ball und Komponente"""
@@ -69,4 +75,5 @@ class Plunger(PinballComponent):
             return True
 
     def checkPixelCollision(self, ballMask:pygame.Mask, ballRect:Rect):
+        """Keine Pixel-Kollision notwendig"""
         return True
