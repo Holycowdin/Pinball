@@ -29,11 +29,16 @@ class Ball():
         self.rect.center = self.pos
 
     def accelerate(self, accelerationSign = 1):
-        if (self.movementVector.x > 0) and (self.movementVector.x > self.acceleration.x):
+        if (self.movementVector.x > 0 and 
+            self.movementVector.x > self.acceleration.x):
+            #Ball bewegt sich nach rechts, negative Beschleunigung
             self.movementVector.x -= self.acceleration.x * accelerationSign 
-        elif (self.movementVector.x < 0) and (self.movementVector.x < self.acceleration.x):
+        elif (self.movementVector.x < 0 
+                and self.movementVector.x < self.acceleration.x):
+            #Ball bewegt sich nach links, negative Beschleunigung
             self.movementVector.x += self.acceleration.x * accelerationSign
         else:
+            #Negative Beschleunigung soll Ball nicht wieder in andere Richtung lenken
             self.movementVector.x = 0
         self.movementVector.y += self.acceleration.y * accelerationSign
 

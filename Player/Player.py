@@ -2,8 +2,11 @@
 
 class Player():
     def __init__(self):
-        self.score = 0
-        self.multiplier = 1
+        self.resetScore()
 
     def increaseScore(self, points:int):
         self.score += points * self.multiplier
+
+    def resetScore(self):
+        self.score = 0
+        self.multiplier = 1

@@ -3,11 +3,10 @@ from PinballComponents import PinballComponent, Flipper, Bumper, Slingshot, Slop
 from Mixer import Mixer
 
 import pygame
-import pygame.gfxdraw
 from pygame.math import Vector2
 
 
-WINDOW_WIDTH = 1322 #64*20
+WINDOW_WIDTH = 1322
 WINDOW_HEIGHT = 64*15 + 32
 
 BLACK = (0,0,0)
@@ -19,12 +18,15 @@ class Main():
     def __init__(self):
         pygame.init()
         self.window = pygame.display.set_mode(Vector2(WINDOW_WIDTH, WINDOW_HEIGHT))
+        pygame.display.set_caption("Magic Pinball")
+        pygame.display.set_icon(pygame.image.load("Assets/Sprites/Ball.png").convert_alpha())
+        
         self.clock = pygame.time.Clock()
         self.isRunning = True
         #Sound-Mixer initialisieren
         self.mixer = Mixer()
         #Font intialisieren
-        self.font = pygame.font.SysFont("Arial", 32)
+        self.font = pygame.font.SysFont("Arial", 40)
         #Hintergrund laden
         self.backgroundImage = pygame.image.load("Assets/Sprites/Background.png").convert()
         #Ball erstellen
@@ -129,6 +131,18 @@ class Main():
         #Spieler initialisieren
         self.player = Player()
 
+        self.startGame()
+
+    def startGame(self):
+        self.ball.pos = Vector2(1247, 700)
+        self.ball.rect.center = self.ball.pos
+        self.ball.movementVector = Vector2(0,3)
+        self.ball.isOnField = False
+        
+        self.player.resetScore()
+        for dropTarget in self.dropTargets:
+            dropTarget.stopTimer()
+
     def render(self):
         """Rendert den gesamten Bildschirm, einschließlich Objekte"""
         self.window.fill(BLACK)
@@ -140,21 +154,31 @@ class Main():
         #Ball rendern
         self.window.blit(self.ball.sprite, self.ball.rect)
         #Punktanzeige rendern
-        scoreText = self.font.render(str(self.player.score), True, BLACK)
-        self.window.blit(scoreText, Vector2(1200, 900))
+        scoreText = self.font.render(str(self.player.score), True, WHITE)
+        self.window.blit(scoreText, Vector2(self.slopes[2].rect.right - scoreText.get_width() - 16, 
+                                            WINDOW_HEIGHT - scoreText.get_height() - 10)
+                                            )
 
         pygame.display.update()
 
     def handleEvents(self):
         """Handling der Events"""
         for event in pygame.event.get():
+            #Programm beenden
             if event.type == pygame.QUIT:
                 self.isRunning = False
                 return
             elif event.type == pygame.KEYDOWN:
+                #Programm beenden
                 if event.key == pygame.K_ESCAPE:
                     self.isRunning = False
                     return
+                #Musik stummschalten oder entstummen
+                elif event.key == pygame.K_m:
+                    print("m")
+                    self.mixer.switchMusicVolume()
+                elif event.key == pygame.K_F2:
+                    self.startGame()
             #Animation von Bumper und Slingshot stoppen
             for component in tuple(self.bumpers + self.slingshots + self.stationaryTargets):
                 if event.type == component.timerEvent:

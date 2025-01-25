@@ -47,20 +47,26 @@ class Flipper(PinballComponent):
         if self.movingForward == True and self.rotationAngle < MAX_ROT_ANGLE and self.rotationAngle > -MAX_ROT_ANGLE:
             self.throwBall(ball)
             return
-        #Wenn Flipper ganz oben, Ball herunterrutschen
         self.correctBallPosition(ball)
-        if self.rotationAngle >= MAX_ROT_ANGLE or self.rotationAngle <= -MAX_ROT_ANGLE:
+        if (self.rotationAngle >= MAX_ROT_ANGLE or 
+            self.rotationAngle <= -MAX_ROT_ANGLE):
+            #Flipper vollständig ausgelenkt
+            collidingPixel = self.checkPixelCollision(ball.mask, ball.rect, returnPixel=True)
+            if (collidingPixel == Vector2(120,76) or 
+                collidingPixel == Vector2(40,76)):
+                #Spieler trapt den Ball
+                ball.movementVector = Vector2(0,0)
+                return
+            #Ball herunterrutschen
             try:
                 self.slopeVector.scale_to_length(ball.movementVector.length())
                 ball.movementVector = self.slopeVector.rotate(MAX_ROT_ANGLE) * self.direction
             except ValueError:  #Nullvektor
                 pass
-
-            collidingPixel = self.checkPixelCollision(ball.mask, ball.rect, returnPixel=True)
-            if (collidingPixel == Vector2(120,76)) or (collidingPixel == Vector2(40,76)):   #Spieler trapt den Ball
-                ball.movementVector = Vector2(0,0)
-            return
-        #Wenn sich Flipper nicht bewegt und nicht ausgelenkt ist, Ball herunterrutschen lassen
+            finally:
+                return
+        #Flipper bewegt sich nicht, Flipper nicht vollständig ausgelenkt
+        #Ball herunterrutschen lassen
         vectorLength = ball.movementVector.length()
         try:
             self.slopeVector.scale_to_length(vectorLength)
@@ -79,8 +85,6 @@ class Flipper(PinballComponent):
         distanceWeight = distance/self.rect.width
         if distanceWeight < 0 or distanceWeight > 1:
             return
-        #assert (distanceWeight > 0), f"{distance}, {self.rect.width}"
-        #assert (distanceWeight < 1), f"{distance}, {self.rect.width}"
         #Richtung des Movementvektors
         slingVector = self.slopeVector.rotate(self.direction * pygame.math.lerp(15, MAX_ROT_ANGLE, distanceWeight))
         slingVector.y *= -1

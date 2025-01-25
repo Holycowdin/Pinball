@@ -23,19 +23,19 @@ class PinballComponent():
     def checkPixelCollision(self, ballMask:pygame.Mask, ballRect:Rect, returnPixel=False) -> bool | Vector2:
         """Prüft pixelgenaue Kollision für Ball und Komponente; nur gecallt, wenn Rects kollidieren"""
         #self.overlappingPixel = ballMask.overlap(self.mask, (self.rect.left - ballRect.left, self.rect.top - ballRect.top))
-        self.overlappingPixel = self.mask.overlap(ballMask, Vector2(ballRect.topleft) - Vector2(self.rect.topleft))
-        if self.overlappingPixel:
+        overlappingPixel = self.mask.overlap(ballMask, Vector2(ballRect.topleft) - Vector2(self.rect.topleft))
+        if overlappingPixel:
             if not returnPixel:
                 return True
-            return Vector2(self.overlappingPixel)
+            return Vector2(overlappingPixel)
 
     def correctBallPosition(self, ball:Ball):
         while self.checkAllOverlappingPixels(ball.mask, ball.rect) > 1:
             ball.correctPosition()
 
     def checkAllOverlappingPixels(self, ballMask:pygame.Mask, ballRect:Rect) -> bool:
-        self.overlappingPixelCount = ballMask.overlap_area(self.mask, (self.rect.left - ballRect.left, self.rect.top - ballRect.top))
-        return self.overlappingPixelCount
+        overlappingPixelCount = ballMask.overlap_area(self.mask, (self.rect.left - ballRect.left, self.rect.top - ballRect.top))
+        return overlappingPixelCount
 
     def collide(self, ball:Ball):
         raise NotImplementedError
