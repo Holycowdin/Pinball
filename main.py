@@ -56,7 +56,7 @@ class Main():
             Slope(Vector2(self.flippers[0].rect.left-250 + 15+8, self.flippers[0].rect.top - 146-3), Slope.Variant.NORMAL_LEFT)
         )
         self.slopes.append(
-            Slope(Vector2(self.flippers[1].rect.right-15-8, self.slopes[0].rect.top), Slope.Variant.NORMAL_RIGHT)   #self.flippers[1].rect.right-10, self.flippers[1].rect.top - 146 + 5
+            Slope(Vector2(self.flippers[1].rect.right-15-8, self.slopes[0].rect.top), Slope.Variant.NORMAL_RIGHT)
         )
         self.slopes.append(
             Slope(Vector2(33, 748), Slope.Variant.EDGE_LEFT)

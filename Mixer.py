@@ -35,10 +35,10 @@ class Mixer():
             pygame.mixer.music.set_volume(0)
 
     def switchMusicVolume(self):
-        if mixer.music.get_volume() == 0:
-            mixer.music.set_volume(0.7)
+        if pygame.mixer.music.get_volume() == 0:
+            pygame.mixer.music.set_volume(0.7)
         else:
-            mixer.music.set_volume(0)
+            pygame.mixer.music.set_volume(0)
 
     def playSound(self, sound:Sound):
         """Spielt Sound bei Kollision ab"""

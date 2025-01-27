@@ -51,7 +51,3 @@ class Wall(PinballComponent):
             reflectionVector.y *= -1
             ball.movementVector.reflect_ip(reflectionVector)
             ball.movementVector *= -1
-
-            """movementVector = -ball.movementVector.copy()
-            movementVector.scale_to_length(ball.movementVector.length())
-            ball.movementVector = movementVector"""

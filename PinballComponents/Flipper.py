@@ -23,14 +23,12 @@ class Flipper(PinballComponent):
         self.sprite = self.normalSprite
 
         super().__init__(pos)
-        # self.mask = pygame.mask.from_threshold(self.sprite, (255,255,255), (0,0,0,255))
         if self.mask.get_at(self.sprite.get_rect().topleft + Vector2(23, 23)):    #Schräge geht von oben links nach unten rechts
             self.slopeVector = Vector2(self.rect.bottomright) - Vector2(self.rect.topleft)
             self.pivotPoint = self.pos + Vector2(23, 23)    #14, 21
         else:   #Schräge geht von oben rechts nach unten links
             self.slopeVector = Vector2(self.rect.bottomleft) - Vector2(self.rect.topright)
             self.pivotPoint = self.pos + Vector2(154, 23)   #177, 20
-        #self.slingVector = self.slopeVector.elementwise() * Vector2(1,-2.5)
 
         self.originalSprite = self.sprite
         self.originalRect:pygame.Rect = self.rect
@@ -52,10 +50,11 @@ class Flipper(PinballComponent):
             self.rotationAngle <= -MAX_ROT_ANGLE):
             #Flipper vollständig ausgelenkt
             collidingPixel = self.checkPixelCollision(ball.mask, ball.rect, returnPixel=True)
-            if (collidingPixel == Vector2(120,76) or 
-                collidingPixel == Vector2(40,76)):
+            if (collidingPixel and
+                collidingPixel.y >= 70 and 
+                collidingPixel.y <= 80):
                 #Spieler trapt den Ball
-                ball.movementVector = Vector2(0,0)
+                self.trapBall(ball)
                 return
             #Ball herunterrutschen
             try:
@@ -73,6 +72,14 @@ class Flipper(PinballComponent):
             ball.movementVector = self.slopeVector.copy()
         except ValueError:  #Nullvektor
             pass
+
+    def trapBall(self, ball:Ball):
+        if self.direction == 1:
+            ball.pos = Vector2(414,809)
+        else:
+            ball.pos = Vector2(822,809.6)
+        
+        ball.movementVector = Vector2(0,0)
 
     def throwBall(self, ball:Ball):
         """Wirft den Ball"""

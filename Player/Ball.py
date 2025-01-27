@@ -49,8 +49,5 @@ class Ball():
 
     def correctPosition(self):
         self.pos += Vector2(0,-1)
-        #self.pos.move_towards_ip(self.pos + Vector2(0,-self.rect.height/2), 1)
         self.rect.center = self.pos
-        #self.movementVector = Vector2(0,0)
         self.accelerate(-1)
-        #self.movementVector -= self.acceleration
