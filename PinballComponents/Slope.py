@@ -43,6 +43,12 @@ class Slope(PinballComponent):
 
     def collide(self, ball:Ball):
         """Handling der Kollision von Slope und Ball"""
+        collision = self.checkPixelCollision(ball.mask, ball.rect, returnPixel=True)
+        collision += self.rect.topleft
+        if (ball.pos.y - collision.y) >= 0:
+            #Ball unter Slope
+            return
+
         ball.correctPosition()
         vectorLength = ball.movementVector.length()
         try:

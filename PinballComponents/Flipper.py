@@ -52,10 +52,11 @@ class Flipper(PinballComponent):
             self.rotationAngle <= -MAX_ROT_ANGLE):
             #Flipper vollständig ausgelenkt
             collidingPixel = self.checkPixelCollision(ball.mask, ball.rect, returnPixel=True)
-            if (collidingPixel == Vector2(120,76) or 
-                collidingPixel == Vector2(40,76)):
+            if (collidingPixel and
+                collidingPixel.y >= 70 and 
+                collidingPixel.y <= 80):
                 #Spieler trapt den Ball
-                ball.movementVector = Vector2(0,0)
+                self.trapBall(ball)
                 return
             #Ball herunterrutschen
             try:
@@ -73,6 +74,14 @@ class Flipper(PinballComponent):
             ball.movementVector = self.slopeVector.copy()
         except ValueError:  #Nullvektor
             pass
+
+    def trapBall(self, ball:Ball):
+        if self.direction == 1:
+            ball.pos = Vector2(414,809)
+        else:
+            ball.pos = Vector2(822,809.6)
+        
+        ball.movementVector = Vector2(0,0)
 
     def throwBall(self, ball:Ball):
         """Wirft den Ball"""
